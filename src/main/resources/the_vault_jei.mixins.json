@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "TheVaultJEI.refmap.json",
   "mixins": [
+    "IntegrationJEIMixin"
   ],
   "client": [
   ],
