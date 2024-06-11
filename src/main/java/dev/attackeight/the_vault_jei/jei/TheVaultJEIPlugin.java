@@ -79,15 +79,15 @@ public class TheVaultJEIPlugin implements IModPlugin {
         return recipes;
     }
 
-    private List<GearForgeRecipe> getGearRecipes(){
-        List<GearForgeRecipe> recipes = new ArrayList<>();
-        ModConfigs.GEAR_RECIPES.getConfigRecipes().forEach(b -> recipes.add(b.makeRecipe()));
-        return recipes;
-    }
-
     private List<TrinketForgeRecipe> getTrinketRecipes(){
         List<TrinketForgeRecipe> recipes = new ArrayList<>();
         ModConfigs.TRINKET_RECIPES.getConfigRecipes().forEach(b -> recipes.add(b.makeRecipe()));
+        return recipes;
+    }
+
+    private List<GearForgeRecipe> getGearRecipes(){
+        List<GearForgeRecipe> recipes = new ArrayList<>();
+        ModConfigs.GEAR_RECIPES.getConfigRecipes().forEach(b -> recipes.add(b.makeRecipe()));
         return recipes;
     }
 
