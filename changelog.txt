@@ -1,0 +1,6 @@
+Vault Hunters JEI Integration v0.1
+Added JEI Integration for the following blocks
+ - Catalyst Infusion Table
+ - Vault Forge
+ - Inscription Table
+ - Tool Station
