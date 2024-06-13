@@ -5,10 +5,9 @@ import dev.attackeight.the_vault_jei.jei.category.*;
 import iskallia.vault.gear.crafting.recipe.*;
 import iskallia.vault.init.ModBlocks;
 import iskallia.vault.init.ModConfigs;
+import iskallia.vault.init.ModItems;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
-import mezz.jei.api.recipe.RecipeType;
-import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
@@ -34,6 +33,8 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.VAULT_FORGE), ForgeGearRecipeCategory.RECIPE_TYPE);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.VAULT_FORGE), ForgeTrinketRecipeCategory.RECIPE_TYPE);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.INSCRIPTION_TABLE), ForgeInscriptionRecipeCategory.RECIPE_TYPE);
+        registration.addRecipeCatalyst(new ItemStack(ModItems.MYSTERY_EGG), MysteryEggRecipeCategory.RECIPE_TYPE);
+        registration.addRecipeCatalyst(new ItemStack(ModItems.MYSTERY_HOSTILE_EGG), MysteryHostileEggRecipeCategory.RECIPE_TYPE);
     }
 
     @Override
@@ -44,6 +45,8 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCategories(new ForgeGearRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
         registration.addRecipeCategories(new ForgeTrinketRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
         registration.addRecipeCategories(new ForgeInscriptionRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
+        registration.addRecipeCategories(new MysteryEggRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
+        registration.addRecipeCategories(new MysteryHostileEggRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
     }
 
     @Override
@@ -54,6 +57,8 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipes(ForgeGearRecipeCategory.RECIPE_TYPE, getGearRecipes());
         registration.addRecipes(ForgeTrinketRecipeCategory.RECIPE_TYPE, getTrinketRecipes());
         registration.addRecipes(ForgeInscriptionRecipeCategory.RECIPE_TYPE, getInscriptionRecipes());
+        registration.addRecipes(MysteryEggRecipeCategory.RECIPE_TYPE, List.of(ModConfigs.MYSTERY_EGG));
+        registration.addRecipes(MysteryHostileEggRecipeCategory.RECIPE_TYPE, List.of(ModConfigs.MYSTERY_HOSTILE_EGG));
     }
 
     @Override
@@ -96,4 +101,6 @@ public class TheVaultJEIPlugin implements IModPlugin {
         ModConfigs.INSCRIPTION_RECIPES.getConfigRecipes().forEach(b -> recipes.add(b.makeRecipe()));
         return recipes;
     }
+
+
 }
