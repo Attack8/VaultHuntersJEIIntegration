@@ -4,3 +4,11 @@ Added JEI Integration for the following blocks
  - Vault Forge
  - Inscription Table
  - Tool Station
+
+Vault Hunters JEI Integration v0.2
+Added JEI Integration for the following blocks
+ - Mystery Egg
+ - Hostile Mystery Egg
+ - Black Market
+ - Mod Box
+ - Mystery Box
