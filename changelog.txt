@@ -12,3 +12,11 @@ Added JEI Integration for the following blocks
  - Black Market
  - Mod Box
  - Mystery Box
+
+Vault Hunters JEI Integration v0.3
+Added JEI Integration for the following blocks
+ - Bounty Table (Rewards)
+Fixed a bug where the regular VH recipes were not showing up
+Added chance and count tooltips to mystery box drops
+Combined recipe categories for items crafted in the same block (Tools and Jewels, Gear and Trinkets)
+Backend code cleanup
