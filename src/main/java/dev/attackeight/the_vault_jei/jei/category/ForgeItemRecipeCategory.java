@@ -1,10 +1,9 @@
 package dev.attackeight.the_vault_jei.jei.category;
 
 import dev.attackeight.the_vault_jei.TheVaultJEI;
+import dev.attackeight.the_vault_jei.jei.ForgeItem;
 import dev.attackeight.the_vault_jei.utils.SlotPlacer;
 import iskallia.vault.container.oversized.OverSizedItemStack;
-import iskallia.vault.gear.crafting.recipe.InscriptionForgeRecipe;
-import iskallia.vault.init.ModBlocks;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -23,45 +22,48 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ForgeInscriptionRecipeCategory implements IRecipeCategory<InscriptionForgeRecipe> {
-    public static final RecipeType<InscriptionForgeRecipe> RECIPE_TYPE = RecipeType.create("the_vault", "inscription_forge", InscriptionForgeRecipe.class);
+public class ForgeItemRecipeCategory implements IRecipeCategory<ForgeItem> {
     private static final ResourceLocation TEXTURE = TheVaultJEI.rl("textures/gui/forge_table_base.png");
+    private final RecipeType<ForgeItem> recipeType;
     private final IDrawable background;
+    private final Component titleComponent;
     private final IDrawable icon;
 
-    public ForgeInscriptionRecipeCategory(final IGuiHelper guiHelper) {
+    public ForgeItemRecipeCategory(IGuiHelper guiHelper, RecipeType<ForgeItem> recipeType, ItemStack icon, Component title) {
+        this.recipeType = recipeType;
+        this.titleComponent = title;
         this.background = guiHelper.createDrawable(TEXTURE, 46, 15, 100, 55);
-        this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(ModBlocks.INSCRIPTION_TABLE));
+        this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, icon);
     }
 
     @Nonnull
     public Component getTitle() {
-        return ModBlocks.INSCRIPTION_TABLE.getName();
+        return titleComponent;
     }
 
     @Nonnull
     public IDrawable getBackground() {
-        return this.background;
+        return background;
     }
 
     @Nonnull
     public IDrawable getIcon() {
-        return this.icon;
+        return icon;
     }
 
     @ParametersAreNonnullByDefault
-    public void setRecipe(IRecipeLayoutBuilder builder, InscriptionForgeRecipe recipe, IFocusGroup focuses) {
-        for (int x = 0; x < recipe.getInputs().size(); x++){
-            builder.addSlot(RecipeIngredientRole.INPUT, SlotPlacer.ForgeRecipe.getX(x), SlotPlacer.ForgeRecipe.getY(x)).addIngredients(Ingredient.of(recipe.getInputs().get(x)));
+    public void setRecipe(IRecipeLayoutBuilder builder, ForgeItem recipe, IFocusGroup focuses) {
+        for (int x = 0; x < recipe.ingredients().size(); x++){
+            builder.addSlot(RecipeIngredientRole.INPUT, SlotPlacer.ForgeRecipe.getX(x), SlotPlacer.ForgeRecipe.getY(x)).addIngredients(Ingredient.of(recipe.ingredients().get(x)));
         }
         List<OverSizedItemStack> overSized = new ArrayList<>();
-        recipe.getInputs().forEach(b -> overSized.add(OverSizedItemStack.of(b)));
-        builder.addSlot(RecipeIngredientRole.OUTPUT, 78, 20).addIngredients(Ingredient.of(recipe.createOutput(overSized, null, 100)));
+        recipe.ingredients().forEach(b -> overSized.add(OverSizedItemStack.of(b)));
+        builder.addSlot(RecipeIngredientRole.OUTPUT, 78, 20).addIngredients(Ingredient.of(recipe.output()));
     }
 
     @Nonnull
-    public RecipeType<InscriptionForgeRecipe> getRecipeType() {
-        return RECIPE_TYPE;
+    public RecipeType<ForgeItem> getRecipeType() {
+        return recipeType;
     }
 
     @Nonnull
@@ -70,7 +72,7 @@ public class ForgeInscriptionRecipeCategory implements IRecipeCategory<Inscripti
     }
 
     @Nonnull
-    public Class<? extends InscriptionForgeRecipe> getRecipeClass() {
+    public Class<? extends ForgeItem> getRecipeClass() {
         return this.getRecipeType().getRecipeClass();
     }
 }
