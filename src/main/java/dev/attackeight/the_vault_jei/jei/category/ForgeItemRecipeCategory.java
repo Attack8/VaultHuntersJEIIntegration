@@ -54,7 +54,7 @@ public class ForgeItemRecipeCategory implements IRecipeCategory<ForgeItem> {
     @ParametersAreNonnullByDefault
     public void setRecipe(IRecipeLayoutBuilder builder, ForgeItem recipe, IFocusGroup focuses) {
         for (int x = 0; x < recipe.ingredients().size(); x++){
-            builder.addSlot(RecipeIngredientRole.INPUT, SlotPlacer.ForgeRecipe.getX(x), SlotPlacer.ForgeRecipe.getY(x)).addIngredients(Ingredient.of(recipe.ingredients().get(x)));
+            builder.addSlot(RecipeIngredientRole.INPUT, SlotPlacer.getX(x), SlotPlacer.getY(x)).addIngredients(Ingredient.of(recipe.ingredients().get(x)));
         }
         List<OverSizedItemStack> overSized = new ArrayList<>();
         recipe.ingredients().forEach(b -> overSized.add(OverSizedItemStack.of(b)));
