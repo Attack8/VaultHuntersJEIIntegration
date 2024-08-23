@@ -20,3 +20,6 @@ Fixed a bug where the regular VH recipes were not showing up
 Added chance and count tooltips to mystery box drops
 Combined recipe categories for items crafted in the same block (Tools and Jewels, Gear and Trinkets)
 Backend code cleanup
+
+Vault Hunters JEI Integration v0.4
+Added integration for vault altar ingredients

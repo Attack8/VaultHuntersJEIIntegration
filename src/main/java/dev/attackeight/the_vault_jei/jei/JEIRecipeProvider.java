@@ -220,4 +220,41 @@ public class JEIRecipeProvider {
         return toReturn;
     }
 
+    protected static List<LabeledIngredientPool> getAltarIngredients() {
+        List<LabeledIngredientPool> toReturn = new ArrayList<>();
+        AltarIngredientAccessor rewardPools = (AltarIngredientAccessor) ModConfigs.VAULT_ALTAR_INGREDIENTS;
+        TreeMap<Integer, List<LabeledIngredientPool>> lootInfo = new TreeMap<>();
+        rewardPools.getLEVELS().forEach((minLevel, entry) -> {
+            List<LabeledIngredientPool> pool = new ArrayList<>();
+            entry.forEach((slot, rewards) -> {
+                AtomicInteger totalWeight = new AtomicInteger();
+                List<ItemStack> results = new ArrayList<>();
+                rewards.forEach(stack -> totalWeight.addAndGet(stack.weight));
+                rewards.forEach(stack -> {
+                    IntRangeEntry amounts = ((IngredientAmountAccessor) stack.value).getAmount();
+                    ItemStack result = new ItemStack(stack.value.getItems().get(0).getItem(), amounts.max);
+                    double chance = ((double) stack.weight / totalWeight.get()) * 100;
+                    CompoundTag nbt = result.getOrCreateTagElement("display");
+                    ListTag list = nbt.getList("Lore", 8);
+                    MutableComponent chanceLabel = new TextComponent("Chance: ");
+                    chanceLabel.append(String.format("%.2f", chance));
+                    chanceLabel.append("%");
+                    list.add(StringTag.valueOf(Component.Serializer.toJson(chanceLabel.withStyle(ChatFormatting.YELLOW))));
+                    if (amounts.min != amounts.max) {
+                        MutableComponent countLabel = new TextComponent("Count: ");
+                        countLabel.append(amounts.min + " - " + amounts.max);
+                        list.add(StringTag.valueOf(Component.Serializer.toJson(countLabel)));
+                    }
+                    nbt.put("Lore", list);
+                    results.add(result);
+                });
+                pool.add(new LabeledIngredientPool(results,
+                        new TextComponent("Reward Pool: " + slot + " Level: " + minLevel + "+")));
+            });
+            lootInfo.put(minLevel, pool);
+        });
+        lootInfo.forEach((i, n) -> toReturn.addAll(n));
+        return toReturn;
+    }
+
 }
