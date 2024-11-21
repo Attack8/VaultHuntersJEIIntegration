@@ -2,6 +2,7 @@ package dev.attackeight.the_vault_jei;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import org.slf4j.Logger;
 
@@ -17,6 +18,10 @@ public class TheVaultJEI {
 
     public static ResourceLocation rl(String path) {
         return new ResourceLocation(TheVaultJEI.ID, path);
+    }
+
+    public static boolean hasWolds() {
+        return ModList.get().isLoaded("woldsvaults");
     }
 
 }

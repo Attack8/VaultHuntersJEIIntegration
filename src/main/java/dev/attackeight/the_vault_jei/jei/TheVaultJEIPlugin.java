@@ -15,9 +15,12 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.ModList;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -84,6 +87,9 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipes(MOD_BOX, getModBoxLoot());
         registration.addRecipes(BOUNTY_REWARDS, getBountyRewards());
         registration.addRecipes(ALTAR_INGREDIENTS, getAltarIngredients());
+        if (TheVaultJEI.hasWolds()) {
+
+        }
     }
 
     @Override

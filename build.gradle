@@ -200,6 +200,10 @@ dependencies {
     runtimeOnly fg.deobf("curse.maven:modular-routers-250294:4984984")
     // runtimeOnly fg.deobf("curse.maven:attackeight-quest-addon-946682:5401585")
 
+    compileOnly fg.deobf("curse.maven:wolds-vaults-official-mod-958799:5854693")
+    if (wolds_enable) {
+        runtimeOnly fg.deobf("curse.maven:wolds-vaults-official-mod-958799:5854693")
+    }
 }
 
 mixin {
