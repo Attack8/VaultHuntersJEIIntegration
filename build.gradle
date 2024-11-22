@@ -184,9 +184,9 @@ dependencies {
     runtimeOnly fg.deobf("curse.maven:loot-beams-506757:3879829")
     runtimeOnly fg.deobf("curse.maven:xaeros-minimap-263420:4181105")
     runtimeOnly fg.deobf("curse.maven:xaeros-world-map-317780:4193007")
-    runtimeOnly fg.deobf("curse.maven:sophisticated-core-618298:4489807")
-    runtimeOnly fg.deobf("curse.maven:sophisticated-backpacks-422301:4515363")
-    runtimeOnly fg.deobf("curse.maven:sophisticated-backpacks-vault-hunters-edition-696425:4287544")
+    runtimeOnly fg.deobf("curse.maven:sophisticated-core-618298:5296312")
+    runtimeOnly fg.deobf("curse.maven:sophisticated-backpacks-422301:5654080")
+    runtimeOnly fg.deobf("curse.maven:sophisticated-backpacks-vault-hunters-edition-696425:4859716")
     runtimeOnly fg.deobf("curse.maven:ecologics-570463:4171283")
     runtimeOnly fg.deobf("curse.maven:compressium-342929:4034865")
     runtimeOnly fg.deobf("curse.maven:architects-palette-433862:4498424")
@@ -205,9 +205,12 @@ dependencies {
     runtimeOnly fg.deobf("curse.maven:modular-routers-250294:4984984")
     // runtimeOnly fg.deobf("curse.maven:attackeight-quest-addon-946682:5401585")
 
-    // compileOnly fg.deobf("curse.maven:wolds-vaults-official-mod-958799:5854693")
+    compileOnly fg.deobf("curse.maven:wolds-vaults-official-mod-958799:5925360")
+    compileOnly fg.deobf("curse.maven:vault-hunters-api-1118899:5925356")
     if (wolds_enable) {
-        // runtimeOnly fg.deobf("curse.maven:wolds-vaults-official-mod-958799:5854693")
+        runtimeOnly fg.deobf("curse.maven:wolds-vaults-official-mod-958799:5925360")
+        runtimeOnly fg.deobf("curse.maven:vault-hunters-api-1118899:5925356")
+        runtimeOnly fg.deobf("curse.maven:angel-ring-333396:4641783")
     }
 }
 
