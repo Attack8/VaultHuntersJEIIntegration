@@ -23,3 +23,6 @@ Backend code cleanup
 
 Vault Hunters JEI Integration v0.4
 Added integration for vault altar ingredients
+
+Vault Hunters JEI Integration v0.4.1
+Small hotfix to fix Altar Ingredients and Bounty Rewards in VH u16
