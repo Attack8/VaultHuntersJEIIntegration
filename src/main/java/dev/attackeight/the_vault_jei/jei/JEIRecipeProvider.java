@@ -212,7 +212,7 @@ public class JEIRecipeProvider {
                     });
                     lootInfo.put(minLevel, new LabeledLootInfo(results,
                             new TextComponent("Reward Pool: " + id + " Level: " + minLevel + "+"),
-                            new TextComponent("Vault Exp Reward: " + vaultExp.min + "-" + vaultExp.max)));
+                            new TextComponent("Vault Exp Reward: " + vaultExp.getMin() + "-" + vaultExp.getMax())));
                 });
             }
             lootInfo.forEach((n,i) -> toReturn.add(i));
@@ -232,7 +232,7 @@ public class JEIRecipeProvider {
                 rewards.forEach(stack -> totalWeight.addAndGet(stack.weight));
                 rewards.forEach(stack -> {
                     IntRangeEntry amounts = ((IngredientAmountAccessor) stack.value).getAmount();
-                    ItemStack result = new ItemStack(stack.value.getItems().get(0).getItem(), amounts.max);
+                    ItemStack result = new ItemStack(stack.value.getItems().get(0).getItem(), amounts.getMax());
                     double chance = ((double) stack.weight / totalWeight.get()) * 100;
                     CompoundTag nbt = result.getOrCreateTagElement("display");
                     ListTag list = nbt.getList("Lore", 8);
@@ -240,9 +240,9 @@ public class JEIRecipeProvider {
                     chanceLabel.append(String.format("%.2f", chance));
                     chanceLabel.append("%");
                     list.add(StringTag.valueOf(Component.Serializer.toJson(chanceLabel.withStyle(ChatFormatting.YELLOW))));
-                    if (amounts.min != amounts.max) {
+                    if (amounts.getMin() != amounts.getMax()) {
                         MutableComponent countLabel = new TextComponent("Count: ");
-                        countLabel.append(amounts.min + " - " + amounts.max);
+                        countLabel.append(amounts.getMin() + " - " + amounts.getMax());
                         list.add(StringTag.valueOf(Component.Serializer.toJson(countLabel)));
                     }
                     nbt.put("Lore", list);
