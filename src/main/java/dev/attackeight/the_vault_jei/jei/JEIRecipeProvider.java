@@ -18,6 +18,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -77,8 +78,19 @@ public class JEIRecipeProvider {
         return lootInfo;
     }
 
+    protected static List<LootInfo> getPandorasBoxLoot() {
+        List<LootInfo> lootInfo = new ArrayList<>();
+        List<ItemStack> loot = new ArrayList<>();
+        int total = ModConfigs.PANDORAS_BOX.POOL.getTotalWeight();
+        ModConfigs.PANDORAS_BOX.POOL.forEach(b -> loot.add(addWeight(b, total)));
+        lootInfo.add(new LootInfo(loot));
+        return lootInfo;
+    }
+
     protected static ItemStack addWeight(WeightedList.Entry<ProductEntry> productEntry, int totalWeight) {
         ProductEntryAccessor entry = (ProductEntryAccessor) productEntry.value;
+        if (!ForgeRegistries.ITEMS.containsKey(productEntry.value.getItem().getRegistryName()))
+            return ItemStack.EMPTY;
         ItemStack stack = new ItemStack(productEntry.value.getItem(), entry.getAmountMax());
         CompoundTag nbt = stack.getOrCreateTagElement("display");
         ListTag list = nbt.getList("Lore", 8);

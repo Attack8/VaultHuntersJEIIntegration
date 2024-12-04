@@ -4,6 +4,7 @@ import dev.attackeight.the_vault_jei.TheVaultJEI;
 import dev.attackeight.the_vault_jei.jei.category.*;
 import static dev.attackeight.the_vault_jei.jei.JEIRecipeProvider.*;
 
+import dev.attackeight.the_vault_jei.utils.ModConfig;
 import iskallia.vault.init.ModBlocks;
 import iskallia.vault.init.ModItems;
 import iskallia.vault.integration.jei.lootinfo.LootInfo;
@@ -15,12 +16,11 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
-import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.ModList;
+import org.jetbrains.annotations.NotNull;
+import org.lwjgl.system.CallbackI;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -36,6 +36,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
     public static final RecipeType<LootInfo> MYSTERY_BOX = RecipeType.create("the_vault", "mystery_box", LootInfo.class);
     public static final RecipeType<LootInfo> MYSTERY_EGG = RecipeType.create("the_vault", "mystery_egg", LootInfo.class);
     public static final RecipeType<LootInfo> HOSTILE_EGG = RecipeType.create("the_vault", "hostile_egg", LootInfo.class);
+    public static final RecipeType<LootInfo> PANDORAS_BOX = RecipeType.create("the_vault", "pandoras_box", LootInfo.class);
     public static final RecipeType<LabeledLootInfo> BLACK_MARKET = RecipeType.create("the_vault", "black_market", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> MOD_BOX = RecipeType.create("the_vault", "mod_box", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> BOUNTY_REWARDS = RecipeType.create("the_vault", "bounty_rewards", LabeledLootInfo.class);
@@ -56,6 +57,10 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ModItems.MOD_BOX), MOD_BOX);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.BOUNTY_BLOCK), BOUNTY_REWARDS);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.VAULT_ALTAR), ALTAR_INGREDIENTS);
+
+        if (ModConfig.shouldShow()) {
+            registration.addRecipeCatalyst(new ItemStack(ModItems.PANDORAS_BOX), PANDORAS_BOX);
+        }
     }
 
     @Override
@@ -72,6 +77,10 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, MOD_BOX, ModItems.MOD_BOX));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, BOUNTY_REWARDS, ModBlocks.BOUNTY_BLOCK));
         registration.addRecipeCategories(makeLabeledIngredientPoolCategory(guiHelper, ALTAR_INGREDIENTS, ModBlocks.VAULT_ALTAR));
+
+        if (ModConfig.shouldShow()) {
+            registration.addRecipeCategories(makeLootInfoCategory(guiHelper, PANDORAS_BOX, ModItems.PANDORAS_BOX));
+        }
     }
 
     @Override
@@ -87,13 +96,14 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipes(MOD_BOX, getModBoxLoot());
         registration.addRecipes(BOUNTY_REWARDS, getBountyRewards());
         registration.addRecipes(ALTAR_INGREDIENTS, getAltarIngredients());
-        if (TheVaultJEI.hasWolds()) {
 
+        if (ModConfig.shouldShow()) {
+            registration.addRecipes(PANDORAS_BOX, getPandorasBoxLoot());
         }
     }
 
     @Override
-    public ResourceLocation getPluginUid() {
+    public @NotNull ResourceLocation getPluginUid() {
         return TheVaultJEI.rl("jei_integration");
     }
 

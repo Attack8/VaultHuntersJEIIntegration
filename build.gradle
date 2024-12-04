@@ -204,14 +204,6 @@ dependencies {
     runtimeOnly fg.deobf("curse.maven:applied-energistics-2-223794:4136407")
     runtimeOnly fg.deobf("curse.maven:modular-routers-250294:4984984")
     // runtimeOnly fg.deobf("curse.maven:attackeight-quest-addon-946682:5401585")
-
-    compileOnly fg.deobf("curse.maven:wolds-vaults-official-mod-958799:5925360")
-    compileOnly fg.deobf("curse.maven:vault-hunters-api-1118899:5925356")
-    if (wolds_enable) {
-        runtimeOnly fg.deobf("curse.maven:wolds-vaults-official-mod-958799:5925360")
-        runtimeOnly fg.deobf("curse.maven:vault-hunters-api-1118899:5925356")
-        runtimeOnly fg.deobf("curse.maven:angel-ring-333396:4641783")
-    }
 }
 
 mixin {
