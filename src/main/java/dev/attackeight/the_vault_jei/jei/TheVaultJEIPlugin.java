@@ -40,6 +40,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
     public static final RecipeType<LabeledLootInfo> BLACK_MARKET = RecipeType.create("the_vault", "black_market", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> MOD_BOX = RecipeType.create("the_vault", "mod_box", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> BOUNTY_REWARDS = RecipeType.create("the_vault", "bounty_rewards", LabeledLootInfo.class);
+    public static final RecipeType<LabeledLootInfo> SHOP_PEDESTAL = RecipeType.create("the_vault", "shop_pedestal", LabeledLootInfo.class);
     public static final RecipeType<LabeledIngredientPool> ALTAR_INGREDIENTS = RecipeType.create("the_vault", "altar_ingredients", LabeledIngredientPool.class);
 
     public TheVaultJEIPlugin() {}
@@ -56,6 +57,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.BLACK_MARKET), BLACK_MARKET);
         registration.addRecipeCatalyst(new ItemStack(ModItems.MOD_BOX), MOD_BOX);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.BOUNTY_BLOCK), BOUNTY_REWARDS);
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.SHOP_PEDESTAL), SHOP_PEDESTAL);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.VAULT_ALTAR), ALTAR_INGREDIENTS);
 
         if (ModConfig.shouldShow()) {
@@ -76,6 +78,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, BLACK_MARKET, ModBlocks.BLACK_MARKET));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, MOD_BOX, ModItems.MOD_BOX));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, BOUNTY_REWARDS, ModBlocks.BOUNTY_BLOCK));
+        registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, SHOP_PEDESTAL, ModBlocks.SHOP_PEDESTAL));
         registration.addRecipeCategories(makeLabeledIngredientPoolCategory(guiHelper, ALTAR_INGREDIENTS, ModBlocks.VAULT_ALTAR));
 
         if (ModConfig.shouldShow()) {
@@ -95,6 +98,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipes(BLACK_MARKET, getBlackMarketLoot());
         registration.addRecipes(MOD_BOX, getModBoxLoot());
         registration.addRecipes(BOUNTY_REWARDS, getBountyRewards());
+        registration.addRecipes(SHOP_PEDESTAL, getShopPedestalLoot());
         registration.addRecipes(ALTAR_INGREDIENTS, getAltarIngredients());
 
         if (ModConfig.shouldShow()) {

@@ -1,7 +1,10 @@
 package dev.attackeight.the_vault_jei.jei;
 
+import com.mojang.logging.LogUtils;
+import dev.attackeight.the_vault_jei.TheVaultJEI;
 import dev.attackeight.the_vault_jei.mixin.*;
 import iskallia.vault.config.OmegaSoulShardConfig;
+import iskallia.vault.config.ShopPedestalConfig;
 import iskallia.vault.config.SoulShardConfig;
 import iskallia.vault.config.entry.IntRangeEntry;
 import iskallia.vault.config.entry.recipe.ConfigForgeRecipe;
@@ -19,6 +22,8 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -106,6 +111,46 @@ public class JEIRecipeProvider {
         }
         nbt.put("Lore", list);
         return stack;
+    }
+
+    protected static List<LabeledLootInfo> getShopPedestalLoot() {
+        List<LabeledLootInfo> lootInfo = new ArrayList<>();
+        List<Pair<List<Triple<ItemStack, IntRangeEntry, Double>>, Integer>> pedestalInfo;
+        try {
+            pedestalInfo = (List<Pair<List<Triple<ItemStack, IntRangeEntry, Double>>, Integer>>)
+                    ModConfigs.SHOP_PEDESTAL.getClass().getMethod("getTrades").invoke(ModConfigs.SHOP_PEDESTAL);
+        } catch (Exception e) {
+            TheVaultJEI.LOGGER.error(e.toString());
+            return new ArrayList<>();
+        }
+        pedestalInfo.forEach(tierInfo -> {
+            List<Triple<ItemStack, IntRangeEntry, Double>> tier = tierInfo.getLeft();
+            LogUtils.getLogger().info("tier Length: {}", tier.size());
+            int minLevel = tierInfo.getRight();
+            AtomicInteger totalWeight = new AtomicInteger();
+            tier.forEach(d -> totalWeight.addAndGet(d.getRight().intValue()));
+            List<ItemStack> offers = new ArrayList<>();
+            tier.forEach(offerInfo -> {
+                LogUtils.getLogger().info("Item Name: {}", offerInfo.getLeft().getDisplayName());
+                ItemStack currentOffer = offerInfo.getLeft();
+                int minPrice = offerInfo.getMiddle().getMin();
+                int maxPrice = offerInfo.getMiddle().getMax();
+                double chance = (offerInfo.getRight() / totalWeight.get()) * 100;
+                CompoundTag nbt = currentOffer.getOrCreateTagElement("display");
+                ListTag list = nbt.getList("Lore", 8);
+                MutableComponent chanceLabel = new TextComponent("Chance: ");
+                chanceLabel.append(String.format("%.2f", chance));
+                chanceLabel.append("%");
+                list.add(StringTag.valueOf(Component.Serializer.toJson(chanceLabel.withStyle(ChatFormatting.YELLOW))));
+                MutableComponent costLabel = new TextComponent("Cost: ");
+                costLabel.append(minPrice + " - " + maxPrice);
+                list.add(StringTag.valueOf(Component.Serializer.toJson(costLabel)));
+                nbt.put("Lore", list);
+                offers.add(currentOffer);
+            });
+            lootInfo.add(new LabeledLootInfo(offers, new TextComponent("Level " + minLevel + "+ ")));
+        });
+        return lootInfo;
     }
 
     protected static List<LabeledLootInfo> getBlackMarketLoot() {
