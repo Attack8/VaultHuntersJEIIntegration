@@ -26,3 +26,7 @@ Added integration for vault altar ingredients
 
 Vault Hunters JEI Integration v0.4.1
 Small hotfix to fix Altar Ingredients and Bounty Rewards in VH u16
+
+Vault Hunters JEI Integration v0.5
+ - Add (optionally) Pandora's Box
+ - Add Support for Shop Pedestal Loot
