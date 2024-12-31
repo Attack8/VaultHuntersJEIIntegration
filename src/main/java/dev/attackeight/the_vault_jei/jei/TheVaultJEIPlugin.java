@@ -20,7 +20,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import org.jetbrains.annotations.NotNull;
-import org.lwjgl.system.CallbackI;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -41,7 +40,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
     public static final RecipeType<LabeledLootInfo> MOD_BOX = RecipeType.create("the_vault", "mod_box", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> BOUNTY_REWARDS = RecipeType.create("the_vault", "bounty_rewards", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> SHOP_PEDESTAL = RecipeType.create("the_vault", "shop_pedestal", LabeledLootInfo.class);
-    public static final RecipeType<LabeledIngredientPool> ALTAR_INGREDIENTS = RecipeType.create("the_vault", "altar_ingredients", LabeledIngredientPool.class);
+    public static final RecipeType<LabeledLootInfo> ALTAR_INGREDIENTS = RecipeType.create("the_vault", "altar_ingredients", LabeledLootInfo.class);
 
     public TheVaultJEIPlugin() {}
 
@@ -119,7 +118,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         return new LabeledLootInfoRecipeCategory(guiHelper, recipeType, new ItemStack(icon), icon.asItem().getName(new ItemStack(icon)));
     }
 
-    private LabeledIngredientPoolRecipeCategory makeLabeledIngredientPoolCategory(IGuiHelper guiHelper, RecipeType<LabeledIngredientPool> recipeType, ItemLike icon) {
+    private LabeledIngredientPoolRecipeCategory makeLabeledIngredientPoolCategory(IGuiHelper guiHelper, RecipeType<LabeledLootInfo> recipeType, ItemLike icon) {
         return new LabeledIngredientPoolRecipeCategory(guiHelper, recipeType, new ItemStack(icon), icon.asItem().getName(new ItemStack(icon)));
     }
 

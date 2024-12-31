@@ -1,7 +1,7 @@
 package dev.attackeight.the_vault_jei.jei.category;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import dev.attackeight.the_vault_jei.jei.LabeledIngredientPool;
+import dev.attackeight.the_vault_jei.jei.LabeledLootInfo;
 import iskallia.vault.VaultMod;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
@@ -12,24 +12,27 @@ import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.world.item.crafting.Ingredient;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
-public class LabeledIngredientPoolRecipeCategory implements IRecipeCategory<LabeledIngredientPool> {
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
+public class LabeledIngredientPoolRecipeCategory implements IRecipeCategory<LabeledLootInfo> {
 
     private static final ResourceLocation TEXTURE = VaultMod.id("textures/gui/jei/loot_info.png");
-    private final RecipeType<LabeledIngredientPool> recipeType;
+    private final RecipeType<LabeledLootInfo> recipeType;
     private final IDrawable background;
     private final Component titleComponent;
     private final IDrawable icon;
 
-    public LabeledIngredientPoolRecipeCategory(IGuiHelper guiHelper, RecipeType<LabeledIngredientPool> recipeType, ItemStack icon, Component title) {
+    public LabeledIngredientPoolRecipeCategory(IGuiHelper guiHelper, RecipeType<LabeledLootInfo> recipeType, ItemStack icon, Component title) {
         this.recipeType = recipeType;
         this.background = guiHelper.createDrawable(TEXTURE, 0, 0, 162, 108);
         this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, icon);
@@ -37,48 +40,50 @@ public class LabeledIngredientPoolRecipeCategory implements IRecipeCategory<Labe
     }
 
     @Override
-    public @NotNull Component getTitle() {
+    public Component getTitle() {
         return titleComponent;
     }
 
     @Override
-    public @NotNull IDrawable getBackground() {
+    public IDrawable getBackground() {
         return background;
     }
 
     @Override
-    public @NotNull IDrawable getIcon() {
+    public IDrawable getIcon() {
         return icon;
     }
 
     @Override
-    public @NotNull RecipeType<LabeledIngredientPool> getRecipeType() {
+    public RecipeType<LabeledLootInfo> getRecipeType() {
         return recipeType;
     }
 
+    @SuppressWarnings("removal")
     @Override
     public ResourceLocation getUid() {
         return recipeType.getUid();
     }
 
+    @SuppressWarnings("removal")
     @Override
-    public Class<? extends LabeledIngredientPool> getRecipeClass() {
+    public Class<? extends LabeledLootInfo> getRecipeClass() {
         return recipeType.getRecipeClass();
     }
 
-    @ParametersAreNonnullByDefault
-    public void setRecipe(IRecipeLayoutBuilder builder, LabeledIngredientPool recipe, IFocusGroup focuses) {
-        List<ItemStack> itemList = recipe.itemStackList();
+
+    public void setRecipe(IRecipeLayoutBuilder builder, LabeledLootInfo recipe, IFocusGroup focuses) {
+        List<List<ItemStack>> itemList = recipe.itemStackList();
         int count = itemList.size();
 
         for(int i = 0; i < count; ++i) {
-            builder.addSlot(RecipeIngredientRole.INPUT, 1 + 18 * (i % 9), 1 + 18 * (i / 9)).addItemStack((ItemStack)itemList.get(i));
+            builder.addSlot(RecipeIngredientRole.INPUT, 1 + 18 * (i % 9), 1 + 18 * (i / 9)).addIngredients(Ingredient.of(itemList.get(i).stream()));
         }
 
     }
 
     @Override
-    public void draw(LabeledIngredientPool recipe, IRecipeSlotsView recipeSlotsView, PoseStack stack, double mouseX, double mouseY) {
+    public void draw(LabeledLootInfo recipe, IRecipeSlotsView recipeSlotsView, PoseStack stack, double mouseX, double mouseY) {
         IRecipeCategory.super.draw(recipe, recipeSlotsView, stack, mouseX, mouseY);
         Minecraft minecraft = Minecraft.getInstance();
         int xPos = 0;
