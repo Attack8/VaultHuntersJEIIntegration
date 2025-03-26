@@ -4,14 +4,20 @@
   "package": "dev.attackeight.the_vault_jei.mixin",
   "compatibilityLevel": "JAVA_8",
   "refmap": "TheVaultJEI.refmap.json",
+  "plugin": "dev.attackeight.the_vault_jei.TheVaultJEIMixinPlugin",
   "mixins": [
     "AltarIngredientAccessor",
+    "ArenaGiftStatueLootConfigAccessor",
+    "ClientEventsMixin",
+    "GiftStatueLootConfigAccessor",
     "IngredientAmountAccessor",
     "IntegrationJEIMixin",
+    "MegaGiftStatueLootConfigAccessor",
     "ProductEntryAccessor",
     "RewardEntryAccessor",
     "RewardPoolAccessor",
-    "ShopPedestalConfigMixin"
+    "ShopPedestalConfigMixin",
+    "VaultStatueStatueLootConfigAccessor"
   ],
   "client": [],
   "injectors": {

@@ -34,3 +34,8 @@ Vault Hunters JEI Integration v0.5
 Vault Hunters JEI Integration v1.0-beta
  - Backend Code Simplification & Improvements
  - Allow the display of item groups in Altar Ingredients
+
+Vault Hunters JEI Integration v1.0-beta2
+ - Loot Statue integration for Vault Additions
+ - Proper Jewel Recipe Display
+ - Append Black Market and Shop Pedestal info to Loot Info Tooltips
