@@ -50,7 +50,7 @@ minecraft {
             property 'forge.enabledGameTestNamespaces', "${mod_id}"
 
             mods {
-                attackeight_vh {
+                the_vault_jei {
                     source sourceSets.main
                 }
             }
@@ -70,7 +70,7 @@ minecraft {
             property 'forge.enabledGameTestNamespaces', "${mod_id}"
 
             mods {
-                attackeight_vh {
+                the_vault_jei {
                     source sourceSets.main
                 }
             }
@@ -90,7 +90,7 @@ minecraft {
             property 'forge.enabledGameTestNamespaces', "${mod_id}"
 
             mods {
-                attackeight_vh {
+                the_vault_jei {
                     source sourceSets.main
                 }
             }
@@ -110,7 +110,7 @@ minecraft {
             args '--mod', "${mod_id}", '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
 
             mods {
-                attackeight_vh {
+                the_vault_jei {
                     source sourceSets.main
                 }
             }
@@ -168,6 +168,9 @@ dependencies {
     runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}") // Adds the full JEI mod as a runtime dependency
     // implementation fg.deobf("com.tterrag.registrate:Registrate:MC${mc_version}-${registrate_version}") // Adds registrate as a dependency
 
+    compileOnly fg.deobf("curse.maven:vault-additions-1166562:6048959")
+    runtimeOnly fg.deobf("curse.maven:vault-additions-1166562:6048959")
+
     //implementation fg.deobf("vazkii:autoreglib:AutoRegLib:${arl_version}")
     //implementation fg.deobf("vazkii:quark:Quark:${quark_version}")
     implementation fg.deobf("curse.maven:autoreglib-250363:3642382")
@@ -204,6 +207,7 @@ dependencies {
     runtimeOnly fg.deobf("curse.maven:applied-energistics-2-223794:4136407")
     runtimeOnly fg.deobf("curse.maven:modular-routers-250294:4984984")
     // runtimeOnly fg.deobf("curse.maven:attackeight-quest-addon-946682:5401585")
+    runtimeOnly fg.deobf("curse.maven:black-market-tweaks-1168437:6049716")
 }
 
 mixin {
