@@ -1,6 +1,6 @@
-package dev.attackeight.the_vault_jei.mixin;
+package dev.attackeight.just_enough_vh.mixin;
 
-import dev.attackeight.the_vault_jei.TheVaultJEI;
+import dev.attackeight.just_enough_vh.JustEnoughVH;
 import iskallia.vault.config.ShopPedestalConfig;
 import iskallia.vault.config.entry.IntRangeEntry;
 import iskallia.vault.config.entry.LevelEntryList;
@@ -35,7 +35,7 @@ public class ShopPedestalConfigMixin {
                 try {
                     return tier.getClass().getDeclaredField("TRADE_POOL").get(tier);
                 } catch (Exception e) {
-                    TheVaultJEI.LOGGER.error(e.toString());
+                    JustEnoughVH.LOGGER.error(e.toString());
                     return EMPTY;
                 }
             }).ifPresent(x -> entries.add((WeightedList) x));
@@ -43,7 +43,6 @@ public class ShopPedestalConfigMixin {
                 List<Triple<ItemStack, IntRangeEntry, Double>> offers = new ArrayList<>();
                 entry.forEach((offer, weight) -> {
                     try {
-                        TheVaultJEI.LOGGER.info("Should be Entry: {}", offer.getClass());
                         offers.add(new ImmutableTriple<>(
                                 (ItemStack) offer.getClass().getDeclaredField("OFFER").get(offer),
                                 new IntRangeEntry(
@@ -53,7 +52,7 @@ public class ShopPedestalConfigMixin {
                                 (Double) weight
                         ));
                     } catch (Exception e) {
-                        TheVaultJEI.LOGGER.error(e.toString());
+                        JustEnoughVH.LOGGER.error(e.toString());
                     }
                 });
                 toReturn.add(new ImmutablePair<>(offers, level));

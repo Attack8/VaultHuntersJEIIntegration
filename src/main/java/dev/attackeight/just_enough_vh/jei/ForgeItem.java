@@ -1,4 +1,4 @@
-package dev.attackeight.the_vault_jei.jei;
+package dev.attackeight.just_enough_vh.jei;
 
 import net.minecraft.world.item.ItemStack;
 

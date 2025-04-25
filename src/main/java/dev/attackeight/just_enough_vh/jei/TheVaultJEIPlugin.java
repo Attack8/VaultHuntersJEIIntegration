@@ -1,17 +1,20 @@
-package dev.attackeight.the_vault_jei.jei;
+package dev.attackeight.just_enough_vh.jei;
 
-import dev.attackeight.the_vault_jei.TheVaultJEI;
-import dev.attackeight.the_vault_jei.jei.category.*;
-import static dev.attackeight.the_vault_jei.jei.JEIRecipeProvider.*;
+import dev.attackeight.just_enough_vh.JustEnoughVH;
+import dev.attackeight.just_enough_vh.jei.category.*;
+import static dev.attackeight.just_enough_vh.jei.JEIRecipeProvider.*;
 
-import dev.attackeight.the_vault_jei.utils.ModConfig;
+import dev.attackeight.just_enough_vh.utils.ModConfig;
+import io.github.a1qs.vaultadditions.config.CustomVaultConfigRegistry;
 import iskallia.vault.init.ModBlocks;
+import iskallia.vault.init.ModConfigs;
 import iskallia.vault.init.ModItems;
 import iskallia.vault.integration.jei.lootinfo.LootInfo;
 import iskallia.vault.integration.jei.lootinfo.LootInfoRecipeCategory;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
@@ -31,6 +34,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
     public static final RecipeType<ForgeItem> CATALYSTS = RecipeType.create("the_vault", "forge_catalysts", ForgeItem.class);
     public static final RecipeType<ForgeItem> TOOLS = RecipeType.create("the_vault", "forge_tools", ForgeItem.class);
     public static final RecipeType<ForgeItem> GEAR = RecipeType.create("the_vault", "forge_gear", ForgeItem.class);
+    public static final RecipeType<ForgeItem> TRINKETS = RecipeType.create("the_vault", "trinket", ForgeItem.class);
     public static final RecipeType<ForgeItem> INSCRIPTIONS = RecipeType.create("the_vault", "forge_inscription", ForgeItem.class);
     public static final RecipeType<ForgeItem> JEWEL_CRAFTING = RecipeType.create("the_vault", "jewel_crafting", ForgeItem.class);
     public static final RecipeType<LootInfo> MYSTERY_BOX = RecipeType.create("the_vault", "mystery_box", LootInfo.class);
@@ -54,6 +58,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.CATALYST_INFUSION_TABLE), CATALYSTS);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.TOOL_STATION), TOOLS);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.VAULT_FORGE), GEAR);
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.TRINKET_FORGE), TRINKETS);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.INSCRIPTION_TABLE), INSCRIPTIONS);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.JEWEL_CRAFTING_TABLE), JEWEL_CRAFTING);
         registration.addRecipeCatalyst(new ItemStack(ModItems.MYSTERY_BOX), MYSTERY_BOX);
@@ -69,7 +74,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
             registration.addRecipeCatalyst(new ItemStack(ModItems.PANDORAS_BOX), PANDORAS_BOX);
         }
 
-        if (TheVaultJEI.vaLoaded()) {
+        if (JustEnoughVH.vaLoaded()) {
             registration.addRecipeCatalyst(new ItemStack(io.github.a1qs.vaultadditions.init.ModBlocks.LOOT_STATUE_ARENA.get()), VA_ARENA_STATUE);
             registration.addRecipeCatalyst(new ItemStack(io.github.a1qs.vaultadditions.init.ModBlocks.LOOT_STATUE_GIFT.get()), VA_GIFT_STATUE);
             registration.addRecipeCatalyst(new ItemStack(io.github.a1qs.vaultadditions.init.ModBlocks.LOOT_STATUE_GIFT_MEGA.get()), VA_MEGA_GIFT_STATUE);
@@ -83,6 +88,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCategories(makeForgeItemCategory(guiHelper, CATALYSTS, ModBlocks.CATALYST_INFUSION_TABLE));
         registration.addRecipeCategories(makeForgeItemCategory(guiHelper, TOOLS, ModBlocks.TOOL_STATION));
         registration.addRecipeCategories(makeForgeItemCategory(guiHelper, GEAR, ModBlocks.VAULT_FORGE));
+        registration.addRecipeCategories(makeForgeItemCategory(guiHelper, TRINKETS, ModBlocks.TRINKET_FORGE));
         registration.addRecipeCategories(makeForgeItemCategory(guiHelper, INSCRIPTIONS, ModBlocks.INSCRIPTION_TABLE));
         registration.addRecipeCategories(makeForgeItemCategory(guiHelper, JEWEL_CRAFTING, ModBlocks.JEWEL_CRAFTING_TABLE));
         registration.addRecipeCategories(makeLootInfoCategory(guiHelper, MYSTERY_BOX, ModItems.MYSTERY_BOX));
@@ -97,7 +103,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         if (ModConfig.shouldShow()) {
             registration.addRecipeCategories(makeLootInfoCategory(guiHelper, PANDORAS_BOX, ModItems.PANDORAS_BOX));
         }
-        if (TheVaultJEI.vaLoaded()) {
+        if (JustEnoughVH.vaLoaded()) {
             registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, VA_ARENA_STATUE,
                     io.github.a1qs.vaultadditions.init.ModBlocks.LOOT_STATUE_ARENA.get()));
             registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, VA_GIFT_STATUE,
@@ -111,14 +117,15 @@ public class TheVaultJEIPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        registration.addRecipes(CATALYSTS, getCatalystRecipes());
-        registration.addRecipes(TOOLS, getToolRecipes());
-        registration.addRecipes(GEAR, getGearRecipes());
-        registration.addRecipes(INSCRIPTIONS, getInscriptionRecipes());
-        registration.addRecipes(JEWEL_CRAFTING, getJewelCraftingRecipes());
-        registration.addRecipes(MYSTERY_BOX, getMysteryBoxLoot());
-        registration.addRecipes(MYSTERY_EGG, getMysteryEggLoot());
-        registration.addRecipes(HOSTILE_EGG, getHostileEggLoot());
+        registration.addRecipes(CATALYSTS, getForgeRecipes(ModConfigs.CATALYST_RECIPES));
+        registration.addRecipes(TOOLS, getForgeRecipes(ModConfigs.TOOL_RECIPES));
+        registration.addRecipes(GEAR, getForgeRecipes(ModConfigs.GEAR_RECIPES));
+        registration.addRecipes(TRINKETS, getForgeRecipes(ModConfigs.TRINKET_RECIPES));
+        registration.addRecipes(INSCRIPTIONS, getForgeRecipes(ModConfigs.INSCRIPTION_RECIPES));
+        registration.addRecipes(JEWEL_CRAFTING, getForgeRecipes(ModConfigs.JEWEL_CRAFTING_RECIPES));
+        registration.addRecipes(MYSTERY_BOX, getFromPool(ModConfigs.MYSTERY_BOX.POOL));
+        registration.addRecipes(MYSTERY_EGG, getFromPool(ModConfigs.MYSTERY_EGG.POOL));
+        registration.addRecipes(HOSTILE_EGG, getFromPool(ModConfigs.MYSTERY_HOSTILE_EGG.POOL));
         registration.addRecipes(BLACK_MARKET, getBlackMarketLoot());
         registration.addRecipes(MOD_BOX, getModBoxLoot());
         registration.addRecipes(BOUNTY_REWARDS, getBountyRewards());
@@ -126,19 +133,19 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipes(ALTAR_INGREDIENTS, getAltarIngredients());
 
         if (ModConfig.shouldShow()) {
-            registration.addRecipes(PANDORAS_BOX, getPandorasBoxLoot());
+            registration.addRecipes(PANDORAS_BOX, getFromPool(ModConfigs.PANDORAS_BOX.POOL));
         }
-        if (TheVaultJEI.vaLoaded()) {
-            registration.addRecipes(VA_ARENA_STATUE, getArenaStatueLoot());
-            registration.addRecipes(VA_GIFT_STATUE, getGiftStatueLoot());
-            registration.addRecipes(VA_MEGA_GIFT_STATUE, getMegaGiftStatueLoot());
-            registration.addRecipes(VA_VAULT_STATUE, getVaultStatueLoot());
+        if (JustEnoughVH.vaLoaded()) {
+            registration.addRecipes(VA_ARENA_STATUE, getStatueLoot(CustomVaultConfigRegistry.STATUE_LOOT_ARENA));
+            registration.addRecipes(VA_GIFT_STATUE, getStatueLoot(CustomVaultConfigRegistry.STATUE_LOOT_GIFT));
+            registration.addRecipes(VA_MEGA_GIFT_STATUE, getStatueLoot(CustomVaultConfigRegistry.STATUE_LOOT_MEGA_GIFT));
+            registration.addRecipes(VA_VAULT_STATUE, getStatueLoot(CustomVaultConfigRegistry.STATUE_LOOT_VAULT));
         }
     }
 
     @Override
     public @NotNull ResourceLocation getPluginUid() {
-        return TheVaultJEI.rl("jei_integration");
+        return JustEnoughVH.rl("jei_integration");
     }
 
     private LootInfoRecipeCategory makeLootInfoCategory(IGuiHelper guiHelper, RecipeType<LootInfo> recipeType, ItemLike icon) {
@@ -146,14 +153,14 @@ public class TheVaultJEIPlugin implements IModPlugin {
     }
 
     private LabeledLootInfoRecipeCategory makeLabeledLootInfoCategory(IGuiHelper guiHelper, RecipeType<LabeledLootInfo> recipeType, ItemLike icon) {
-        return new LabeledLootInfoRecipeCategory(guiHelper, recipeType, new ItemStack(icon), icon.asItem().getName(new ItemStack(icon)));
+        return new LabeledLootInfoRecipeCategory(guiHelper, recipeType, new ItemStack(icon), RecipeIngredientRole.INPUT);
     }
 
-    private LabeledIngredientPoolRecipeCategory makeLabeledIngredientPoolCategory(IGuiHelper guiHelper, RecipeType<LabeledLootInfo> recipeType, ItemLike icon) {
-        return new LabeledIngredientPoolRecipeCategory(guiHelper, recipeType, new ItemStack(icon), icon.asItem().getName(new ItemStack(icon)));
+    private LabeledLootInfoRecipeCategory makeLabeledIngredientPoolCategory(IGuiHelper guiHelper, RecipeType<LabeledLootInfo> recipeType, ItemLike icon) {
+        return new LabeledLootInfoRecipeCategory(guiHelper, recipeType, new ItemStack(icon), RecipeIngredientRole.OUTPUT);
     }
 
     private ForgeItemRecipeCategory makeForgeItemCategory(IGuiHelper guiHelper, RecipeType<ForgeItem> recipeType, ItemLike icon) {
-        return new ForgeItemRecipeCategory(guiHelper, recipeType, new ItemStack(icon), icon.asItem().getName(new ItemStack(icon)));
+        return new ForgeItemRecipeCategory(guiHelper, recipeType, new ItemStack(icon));
     }
 }

@@ -1,11 +1,11 @@
-Vault Hunters JEI Integration v0.1
+Just Enough VH v0.1
 Added JEI Integration for the following blocks
  - Catalyst Infusion Table
  - Vault Forge
  - Inscription Table
  - Tool Station
 
-Vault Hunters JEI Integration v0.2
+Just Enough VH v0.2
 Added JEI Integration for the following blocks
  - Mystery Egg
  - Hostile Mystery Egg
@@ -13,7 +13,7 @@ Added JEI Integration for the following blocks
  - Mod Box
  - Mystery Box
 
-Vault Hunters JEI Integration v0.3
+Just Enough VH v0.3
 Added JEI Integration for the following blocks
  - Bounty Table (Rewards)
 Fixed a bug where the regular VH recipes were not showing up
@@ -21,21 +21,27 @@ Added chance and count tooltips to mystery box drops
 Combined recipe categories for items crafted in the same block (Tools and Jewels, Gear and Trinkets)
 Backend code cleanup
 
-Vault Hunters JEI Integration v0.4
+Just Enough VH v0.4
 Added integration for vault altar ingredients
 
-Vault Hunters JEI Integration v0.4.1
+Just Enough VH v0.4.1
 Small hotfix to fix Altar Ingredients and Bounty Rewards in VH u16
 
-Vault Hunters JEI Integration v0.5
+Just Enough VH v0.5
  - Add (optionally) Pandora's Box
  - Add Support for Shop Pedestal Loot
 
-Vault Hunters JEI Integration v1.0-beta
+Just Enough VH v1.0-beta
  - Backend Code Simplification & Improvements
  - Allow the display of item groups in Altar Ingredients
 
-Vault Hunters JEI Integration v1.0-beta2
+Just Enough VH v1.0-beta2
  - Loot Statue integration for Vault Additions
  - Proper Jewel Recipe Display
  - Append Black Market and Shop Pedestal info to Loot Info Tooltips
+
+Just Enough VH v1.0
+ - Update to Vault Hunters 3.17
+ - Added Trinket Forge Recipe Category
+ - Update to VaultAdditions 1.15
+ - Backend code improvements

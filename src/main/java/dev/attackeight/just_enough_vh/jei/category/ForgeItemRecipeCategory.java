@@ -1,8 +1,8 @@
-package dev.attackeight.the_vault_jei.jei.category;
+package dev.attackeight.just_enough_vh.jei.category;
 
-import dev.attackeight.the_vault_jei.TheVaultJEI;
-import dev.attackeight.the_vault_jei.jei.ForgeItem;
-import dev.attackeight.the_vault_jei.utils.SlotPlacer;
+import dev.attackeight.just_enough_vh.JustEnoughVH;
+import dev.attackeight.just_enough_vh.jei.ForgeItem;
+import dev.attackeight.just_enough_vh.utils.SlotPlacer;
 import iskallia.vault.container.oversized.OverSizedItemStack;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
@@ -23,15 +23,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ForgeItemRecipeCategory implements IRecipeCategory<ForgeItem> {
-    private static final ResourceLocation TEXTURE = TheVaultJEI.rl("textures/gui/forge_table_base.png");
+    private static final ResourceLocation TEXTURE = JustEnoughVH.rl("textures/gui/forge_table_base.png");
     private final RecipeType<ForgeItem> recipeType;
     private final IDrawable background;
     private final Component titleComponent;
     private final IDrawable icon;
 
-    public ForgeItemRecipeCategory(IGuiHelper guiHelper, RecipeType<ForgeItem> recipeType, ItemStack icon, Component title) {
+    public ForgeItemRecipeCategory(IGuiHelper guiHelper, RecipeType<ForgeItem> recipeType, ItemStack icon) {
         this.recipeType = recipeType;
-        this.titleComponent = title;
+        this.titleComponent = icon.getItem().getName(icon);
         this.background = guiHelper.createDrawable(TEXTURE, 46, 15, 100, 55);
         this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, icon);
     }

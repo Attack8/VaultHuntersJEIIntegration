@@ -1,4 +1,4 @@
-package dev.attackeight.the_vault_jei.mixin;
+package dev.attackeight.just_enough_vh.mixin;
 
 import iskallia.vault.config.entry.vending.ProductEntry;
 import org.spongepowered.asm.mixin.Mixin;

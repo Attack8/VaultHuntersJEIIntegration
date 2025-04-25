@@ -1,13 +1,14 @@
-package dev.attackeight.the_vault_jei.jei;
+package dev.attackeight.just_enough_vh.jei;
 
-import dev.attackeight.the_vault_jei.TheVaultJEI;
-import dev.attackeight.the_vault_jei.mixin.*;
-import io.github.a1qs.vaultadditions.config.CustomVaultConfigRegistry;
+import dev.attackeight.just_enough_vh.JustEnoughVH;
+import dev.attackeight.just_enough_vh.mixin.*;
+import io.github.a1qs.vaultadditions.config.vault.AbstractStatueLootConfig;
 import iskallia.vault.config.OmegaSoulShardConfig;
 import iskallia.vault.config.SoulShardConfig;
 import iskallia.vault.config.entry.IntRangeEntry;
 import iskallia.vault.config.entry.recipe.ConfigForgeRecipe;
 import iskallia.vault.config.entry.vending.ProductEntry;
+import iskallia.vault.config.recipe.ForgeRecipesConfig;
 import iskallia.vault.gear.crafting.recipe.*;
 import iskallia.vault.init.ModConfigs;
 import iskallia.vault.integration.jei.lootinfo.LootInfo;
@@ -29,63 +30,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class JEIRecipeProvider {
 
-    protected static List<ForgeItem> getCatalystRecipes() {
-        return getForgeRecipes(ModConfigs.CATALYST_RECIPES.getConfigRecipes());
-    }
-
-    protected static List<ForgeItem> getToolRecipes() {
-        return getForgeRecipes(ModConfigs.TOOL_RECIPES.getConfigRecipes());
-    }
-
-    protected static List<ForgeItem> getGearRecipes(){
-        List<ForgeItem> recipes = getForgeRecipes(ModConfigs.GEAR_RECIPES.getConfigRecipes());
-        recipes.addAll(getForgeRecipes(ModConfigs.TRINKET_RECIPES.getConfigRecipes()));
-        return recipes;
-    }
-
-    protected static List<ForgeItem> getInscriptionRecipes() {
-        return getForgeRecipes(ModConfigs.INSCRIPTION_RECIPES.getConfigRecipes());
-    }
-
-    protected static List<ForgeItem> getJewelCraftingRecipes() {
-        return getForgeRecipes(ModConfigs.JEWEL_CRAFTING_RECIPES.getConfigRecipes());
-    }
-
-    private static <R extends VaultForgeRecipe, T extends ConfigForgeRecipe<R>> List<ForgeItem> getForgeRecipes(List<T> configRecipes) {
+    protected static <R extends VaultForgeRecipe, T extends ConfigForgeRecipe<R>, V extends ForgeRecipesConfig<T, R>> List<ForgeItem> getForgeRecipes(V config) {
         List<ForgeItem> recipes = new ArrayList<>();
-        configRecipes.forEach(b -> recipes.add(new ForgeItem(b.makeRecipe().getInputs(), b.makeRecipe().getDisplayOutput(100))));
+        config.getConfigRecipes().forEach(b -> recipes.add(new ForgeItem(b.makeRecipe().getInputs(), b.makeRecipe().getDisplayOutput(100))));
         return recipes;
     }
 
-    protected static List<LootInfo> getMysteryBoxLoot() {
-        List<LootInfo> lootInfo = new ArrayList<>();
-        lootInfo.add(getFromPool(ModConfigs.MYSTERY_BOX.POOL));
-        return lootInfo;
-    }
-
-    protected static List<LootInfo> getMysteryEggLoot() {
-        List<LootInfo> lootInfo = new ArrayList<>();
-        lootInfo.add(getFromPool(ModConfigs.MYSTERY_EGG.POOL));
-        return lootInfo;
-    }
-
-    protected static List<LootInfo> getHostileEggLoot() {
-        List<LootInfo> lootInfo = new ArrayList<>();
-        lootInfo.add(getFromPool(ModConfigs.MYSTERY_HOSTILE_EGG.POOL));
-        return lootInfo;
-    }
-
-    protected static List<LootInfo> getPandorasBoxLoot() {
-        List<LootInfo> lootInfo = new ArrayList<>();
-        lootInfo.add(getFromPool(ModConfigs.PANDORAS_BOX.POOL));
-        return lootInfo;
-    }
-
-    protected static LootInfo getFromPool(WeightedList<ProductEntry> pool) {
+    protected static List<LootInfo> getFromPool(WeightedList<ProductEntry> pool) {
         List<ItemStack> loot = new ArrayList<>();
         int total = pool.getTotalWeight();
         pool.forEach(b -> loot.add(addWeight(b, total)));
-        return new LootInfo(loot);
+        return List.of(new LootInfo(loot));
     }
 
     protected static ItemStack addWeight(WeightedList.Entry<ProductEntry> productEntry, int totalWeight) {
@@ -116,7 +71,7 @@ public class JEIRecipeProvider {
             pedestalInfo = (List<Pair<List<Triple<ItemStack, IntRangeEntry, Double>>, Integer>>)
                     ModConfigs.SHOP_PEDESTAL.getClass().getMethod("getTrades").invoke(ModConfigs.SHOP_PEDESTAL);
         } catch (Exception e) {
-            TheVaultJEI.LOGGER.error(e.toString());
+            JustEnoughVH.LOGGER.error(e.toString());
             return new ArrayList<>();
         }
         pedestalInfo.forEach(tierInfo -> {
@@ -140,8 +95,8 @@ public class JEIRecipeProvider {
                 costLabel.append(minPrice + " - " + maxPrice);
                 list.add(StringTag.valueOf(Component.Serializer.toJson(costLabel)));
                 nbt.put("Lore", list);
-                if (!TheVaultJEI.SHOP_PEDESTAL_ITEMS.containsKey(currentOffer.getItem().getRegistryName()))
-                    TheVaultJEI.SHOP_PEDESTAL_ITEMS.put(currentOffer.getItem().getRegistryName(), minLevel);
+                if (!JustEnoughVH.SHOP_PEDESTAL_ITEMS.containsKey(currentOffer.getItem().getRegistryName()))
+                    JustEnoughVH.SHOP_PEDESTAL_ITEMS.put(currentOffer.getItem().getRegistryName(), minLevel);
                 offers.add(currentOffer);
             });
             lootInfo.add(LabeledLootInfo.of(offers, new TextComponent("Level " + minLevel + "+ "), null));
@@ -173,8 +128,8 @@ public class JEIRecipeProvider {
                 costLabel.append(minPrice + " - " + maxPrice);
                 list.add(StringTag.valueOf(Component.Serializer.toJson(costLabel)));
                 nbt.put("Lore", list);
-                if (!TheVaultJEI.BLACK_MARKET_ITEMS.containsKey(currentTrade.getItem().getRegistryName()))
-                    TheVaultJEI.BLACK_MARKET_ITEMS.put(currentTrade.getItem().getRegistryName(), minLevel);
+                if (!JustEnoughVH.BLACK_MARKET_ITEMS.containsKey(currentTrade.getItem().getRegistryName()))
+                    JustEnoughVH.BLACK_MARKET_ITEMS.put(currentTrade.getItem().getRegistryName(), minLevel);
                 shardTrades.add(currentTrade);
             });
             lootInfo.add(LabeledLootInfo.of(shardTrades, new TextComponent("Common Slot: Level " + minLevel + "+ "), new TextComponent("Soul Trade Price: " + randomPrice)));
@@ -200,8 +155,8 @@ public class JEIRecipeProvider {
                 costLabel.append(minPrice + " - " + maxPrice);
                 list.add(StringTag.valueOf(Component.Serializer.toJson(costLabel)));
                 nbt.put("Lore", list);
-                if (!TheVaultJEI.OMEGA_BLACK_MARKET_ITEMS.containsKey(currentTrade.getItem().getRegistryName()))
-                    TheVaultJEI.OMEGA_BLACK_MARKET_ITEMS.put(currentTrade.getItem().getRegistryName(), minLevel);
+                if (!JustEnoughVH.OMEGA_BLACK_MARKET_ITEMS.containsKey(currentTrade.getItem().getRegistryName()))
+                    JustEnoughVH.OMEGA_BLACK_MARKET_ITEMS.put(currentTrade.getItem().getRegistryName(), minLevel);
                 shardTrades.add(currentTrade);
             });
             lootInfo.add(LabeledLootInfo.of(shardTrades, new TextComponent("Omega Slot: Level " + minLevel + "+ "), null));
@@ -318,98 +273,17 @@ public class JEIRecipeProvider {
         return toReturn;
     }
 
-    protected static List<LabeledLootInfo> getArenaStatueLoot() {
+    protected static <T extends AbstractStatueLootConfig> List<LabeledLootInfo> getStatueLoot(T lootConfig) {
         List<LabeledLootInfo> toReturn = new ArrayList<>();
         List<ItemStack> items = new ArrayList<>();
-        ArenaGiftStatueLootConfigAccessor accessor = (ArenaGiftStatueLootConfigAccessor) CustomVaultConfigRegistry.STATUE_LOOT_ARENA;
-        int interval = CustomVaultConfigRegistry.STATUE_LOOT_ARENA.getInterval();
+        AbstractStatueLootConfigAccessor accessor = (AbstractStatueLootConfigAccessor) lootConfig;
+        int interval = lootConfig.getInterval();
         int minCount = accessor.getMinItemGenerated();
         int maxCount = accessor.getMaxItemGenerated();
-        int totalWeight = accessor.getLOOT().getTotalWeight();
-        accessor.getLOOT().forEach((k, v) -> {
-            ItemStack result = k.createItemStack();
-            double chance = ((double) v.doubleValue() / totalWeight) * 100;
-            CompoundTag nbt = result.getOrCreateTagElement("display");
-            ListTag list = nbt.getList("Lore", 8);
-            MutableComponent chanceLabel = new TextComponent("Chance: ");
-            chanceLabel.append(String.format("%.2f", chance));
-            chanceLabel.append("%");
-            list.add(StringTag.valueOf(Component.Serializer.toJson(chanceLabel.withStyle(ChatFormatting.YELLOW))));
-            nbt.put("Lore", list);
-            items.add(result);
-        });
-        toReturn.add(LabeledLootInfo.of(items,
-                new TextComponent("Interval: " + interval),
-                new TextComponent("Count: " + minCount + " - " + maxCount)
-        ));
-        return toReturn;
-    }
-
-    protected static List<LabeledLootInfo> getGiftStatueLoot() {
-        List<LabeledLootInfo> toReturn = new ArrayList<>();
-        List<ItemStack> items = new ArrayList<>();
-        GiftStatueLootConfigAccessor accessor = (GiftStatueLootConfigAccessor) CustomVaultConfigRegistry.STATUE_LOOT_GIFT;
-        int interval = CustomVaultConfigRegistry.STATUE_LOOT_GIFT.getInterval();
-        int minCount = accessor.getMinItemGenerated();
-        int maxCount = accessor.getMaxItemGenerated();
-        int totalWeight = accessor.getLOOT().getTotalWeight();
-        accessor.getLOOT().forEach((k, v) -> {
-            ItemStack result = k.createItemStack();
-            double chance = ((double) v.doubleValue() / totalWeight) * 100;
-            CompoundTag nbt = result.getOrCreateTagElement("display");
-            ListTag list = nbt.getList("Lore", 8);
-            MutableComponent chanceLabel = new TextComponent("Chance: ");
-            chanceLabel.append(String.format("%.2f", chance));
-            chanceLabel.append("%");
-            list.add(StringTag.valueOf(Component.Serializer.toJson(chanceLabel.withStyle(ChatFormatting.YELLOW))));
-            nbt.put("Lore", list);
-            items.add(result);
-        });
-        toReturn.add(LabeledLootInfo.of(items,
-                new TextComponent("Interval: " + interval),
-                new TextComponent("Count: " + minCount + " - " + maxCount)
-        ));
-        return toReturn;
-    }
-
-    protected static List<LabeledLootInfo> getMegaGiftStatueLoot() {
-        List<LabeledLootInfo> toReturn = new ArrayList<>();
-        List<ItemStack> items = new ArrayList<>();
-        MegaGiftStatueLootConfigAccessor accessor = (MegaGiftStatueLootConfigAccessor) CustomVaultConfigRegistry.STATUE_LOOT_MEGA_GIFT;
-        int interval = CustomVaultConfigRegistry.STATUE_LOOT_MEGA_GIFT.getInterval();
-        int minCount = accessor.getMinItemGenerated();
-        int maxCount = accessor.getMaxItemGenerated();
-        int totalWeight = accessor.getLOOT().getTotalWeight();
-        accessor.getLOOT().forEach((k, v) -> {
-            ItemStack result = k.createItemStack();
-            double chance = ((double) v.doubleValue() / totalWeight) * 100;
-            CompoundTag nbt = result.getOrCreateTagElement("display");
-            ListTag list = nbt.getList("Lore", 8);
-            MutableComponent chanceLabel = new TextComponent("Chance: ");
-            chanceLabel.append(String.format("%.2f", chance));
-            chanceLabel.append("%");
-            list.add(StringTag.valueOf(Component.Serializer.toJson(chanceLabel.withStyle(ChatFormatting.YELLOW))));
-            nbt.put("Lore", list);
-            items.add(result);
-        });
-        toReturn.add(LabeledLootInfo.of(items,
-                new TextComponent("Interval: " + interval),
-                new TextComponent("Count: " + minCount + " - " + maxCount)
-        ));
-        return toReturn;
-    }
-
-    protected static List<LabeledLootInfo> getVaultStatueLoot() {
-        List<LabeledLootInfo> toReturn = new ArrayList<>();
-        List<ItemStack> items = new ArrayList<>();
-        VaultStatueStatueLootConfigAccessor accessor = (VaultStatueStatueLootConfigAccessor) CustomVaultConfigRegistry.STATUE_LOOT_VAULT;
-        int interval = CustomVaultConfigRegistry.STATUE_LOOT_VAULT.getInterval();
-        int minCount = accessor.getMinItemGenerated();
-        int maxCount = accessor.getMaxItemGenerated();
-        int totalWeight = accessor.getLOOT().getTotalWeight();
-        accessor.getLOOT().forEach((k, v) -> {
-            ItemStack result = k.createItemStack();
-            double chance = ((double) v.doubleValue() / totalWeight) * 100;
+        int totalWeight = accessor.getDrops().getTotalWeight();
+        accessor.getDrops().forEach((k, v) -> {
+            ItemStack result = k.generateItemStack();
+            double chance = (v.doubleValue() / totalWeight) * 100;
             CompoundTag nbt = result.getOrCreateTagElement("display");
             ListTag list = nbt.getList("Lore", 8);
             MutableComponent chanceLabel = new TextComponent("Chance: ");

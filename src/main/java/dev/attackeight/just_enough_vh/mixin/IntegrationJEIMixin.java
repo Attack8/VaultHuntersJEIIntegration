@@ -1,4 +1,4 @@
-package dev.attackeight.the_vault_jei.mixin;
+package dev.attackeight.just_enough_vh.mixin;
 
 import iskallia.vault.integration.jei.IntegrationJEI;
 import mezz.jei.api.recipe.RecipeType;

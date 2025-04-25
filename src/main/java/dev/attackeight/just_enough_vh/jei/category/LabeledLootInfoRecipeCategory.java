@@ -1,7 +1,7 @@
-package dev.attackeight.the_vault_jei.jei.category;
+package dev.attackeight.just_enough_vh.jei.category;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import dev.attackeight.the_vault_jei.jei.LabeledLootInfo;
+import dev.attackeight.just_enough_vh.jei.LabeledLootInfo;
 import iskallia.vault.VaultMod;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
@@ -22,21 +22,23 @@ import net.minecraft.world.item.crafting.Ingredient;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
-@ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class LabeledIngredientPoolRecipeCategory implements IRecipeCategory<LabeledLootInfo> {
+@ParametersAreNonnullByDefault
+public class LabeledLootInfoRecipeCategory implements IRecipeCategory<LabeledLootInfo> {
 
     private static final ResourceLocation TEXTURE = VaultMod.id("textures/gui/jei/loot_info.png");
     private final RecipeType<LabeledLootInfo> recipeType;
     private final IDrawable background;
     private final Component titleComponent;
     private final IDrawable icon;
+    private final RecipeIngredientRole role;
 
-    public LabeledIngredientPoolRecipeCategory(IGuiHelper guiHelper, RecipeType<LabeledLootInfo> recipeType, ItemStack icon, Component title) {
+    public LabeledLootInfoRecipeCategory(IGuiHelper guiHelper, RecipeType<LabeledLootInfo> recipeType, ItemStack icon, RecipeIngredientRole role) {
         this.recipeType = recipeType;
         this.background = guiHelper.createDrawable(TEXTURE, 0, 0, 162, 108);
         this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, icon);
-        this.titleComponent = title;
+        this.titleComponent = icon.getItem().getName(icon);
+        this.role = role;
     }
 
     @Override
@@ -71,15 +73,13 @@ public class LabeledIngredientPoolRecipeCategory implements IRecipeCategory<Labe
         return recipeType.getRecipeClass();
     }
 
-
     public void setRecipe(IRecipeLayoutBuilder builder, LabeledLootInfo recipe, IFocusGroup focuses) {
         List<List<ItemStack>> itemList = recipe.itemStackList();
         int count = itemList.size();
 
-        for(int i = 0; i < count; ++i) {
-            builder.addSlot(RecipeIngredientRole.INPUT, 1 + 18 * (i % 9), 1 + 18 * (i / 9)).addIngredients(Ingredient.of(itemList.get(i).stream()));
+        for (int i = 0; i < count; ++i) {
+            builder.addSlot(role, 1 + 18 * (i % 9), 1 + 18 * (i / 9)).addIngredients(Ingredient.of(itemList.get(i).stream()));
         }
-
     }
 
     @Override

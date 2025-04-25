@@ -1,4 +1,4 @@
-package dev.attackeight.the_vault_jei;
+package dev.attackeight.just_enough_vh;
 
 import com.google.common.collect.ImmutableMap;
 import org.objectweb.asm.tree.ClassNode;
@@ -10,14 +10,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public class TheVaultJEIMixinPlugin implements IMixinConfigPlugin {
+public class JustEnoughVHMixinPlugin implements IMixinConfigPlugin {
     private static final Supplier<Boolean> TRUE = () -> true;
 
     private static final Map<String, Supplier<Boolean>> CONDITIONS = ImmutableMap.of(
-            "dev.attackeight.mixin.ArenaGiftStatueLootConfigAccessor", TheVaultJEI::vaLoaded,
-            "dev.attackeight.mixin.GiftStatueLootConfigAccessor", TheVaultJEI::vaLoaded,
-            "dev.attackeight.mixin.MegaGiftStatueLootConfigAccessor", TheVaultJEI::vaLoaded,
-            "dev.attackeight.mixin.VaultStatueStatueLootConfigAccessor", TheVaultJEI::vaLoaded
+            "dev.attackeight.mixin.AbstractStatueLootConfigAccessor", JustEnoughVH::vaLoaded
     );
 
     @Override

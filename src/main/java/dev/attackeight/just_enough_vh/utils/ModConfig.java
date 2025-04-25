@@ -1,4 +1,4 @@
-package dev.attackeight.the_vault_jei.utils;
+package dev.attackeight.just_enough_vh.utils;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 

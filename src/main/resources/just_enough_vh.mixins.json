@@ -1,23 +1,20 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "dev.attackeight.the_vault_jei.mixin",
+  "package": "dev.attackeight.just_enough_vh.mixin",
   "compatibilityLevel": "JAVA_8",
   "refmap": "TheVaultJEI.refmap.json",
-  "plugin": "dev.attackeight.the_vault_jei.TheVaultJEIMixinPlugin",
+  "plugin": "dev.attackeight.just_enough_vh.JustEnoughVHMixinPlugin",
   "mixins": [
+    "AbstractStatueLootConfigAccessor",
     "AltarIngredientAccessor",
-    "ArenaGiftStatueLootConfigAccessor",
     "ClientEventsMixin",
-    "GiftStatueLootConfigAccessor",
     "IngredientAmountAccessor",
     "IntegrationJEIMixin",
-    "MegaGiftStatueLootConfigAccessor",
     "ProductEntryAccessor",
     "RewardEntryAccessor",
     "RewardPoolAccessor",
-    "ShopPedestalConfigMixin",
-    "VaultStatueStatueLootConfigAccessor"
+    "ShopPedestalConfigMixin"
   ],
   "client": [],
   "injectors": {
