@@ -169,7 +169,7 @@ dependencies {
     // implementation fg.deobf("com.tterrag.registrate:Registrate:MC${mc_version}-${registrate_version}") // Adds registrate as a dependency
 
     compileOnly fg.deobf("curse.maven:vault-additions-1166562:6326116")
-    runtimeOnly fg.deobf("curse.maven:vault-additions-1166562:6326116")
+//    runtimeOnly fg.deobf("curse.maven:vault-additions-1166562:6326116")
 
     //implementation fg.deobf("vazkii:autoreglib:AutoRegLib:${arl_version}")
     //implementation fg.deobf("vazkii:quark:Quark:${quark_version}")
@@ -226,6 +226,7 @@ tasks.named('processResources', ProcessResources).configure {
             loader_version_range: loader_version_range,
             mod_id: mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
             mod_authors: mod_authors, mod_description: mod_description,
+            vault_additions_version_range: vault_additions_version_range,
     ]
 
     inputs.properties replaceProperties
