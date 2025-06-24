@@ -5,7 +5,6 @@ import dev.attackeight.just_enough_vh.jei.category.*;
 import static dev.attackeight.just_enough_vh.jei.JEIRecipeProvider.*;
 
 import dev.attackeight.just_enough_vh.JustEnoughVH.ModConfig;
-import io.github.a1qs.vaultadditions.config.Configs;
 import iskallia.vault.init.ModBlocks;
 import iskallia.vault.init.ModConfigs;
 import iskallia.vault.init.ModItems;
@@ -136,10 +135,8 @@ public class TheVaultJEIPlugin implements IModPlugin {
             registration.addRecipes(PANDORAS_BOX, getFromPool(ModConfigs.PANDORAS_BOX.POOL));
         }
         if (JustEnoughVH.vaLoaded()) {
-            registration.addRecipes(VA_ARENA_STATUE, getStatueLoot(Configs.STATUE_LOOT_ARENA));
-            registration.addRecipes(VA_GIFT_STATUE, getStatueLoot(Configs.STATUE_LOOT_GIFT));
-            registration.addRecipes(VA_MEGA_GIFT_STATUE, getStatueLoot(Configs.STATUE_LOOT_MEGA_GIFT));
-            registration.addRecipes(VA_VAULT_STATUE, getStatueLoot(Configs.STATUE_LOOT_VAULT));
+            // Register Vault Additions recipes in a separate class to avoid ClassNotFoundException
+            VaultAdditionsJEIPlugin.registerStatueRecipes(registration);
         }
     }
 

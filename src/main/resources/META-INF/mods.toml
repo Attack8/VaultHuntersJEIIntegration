@@ -26,3 +26,10 @@ description='''${mod_description}'''
    versionRange="${minecraft_version_range}"
    ordering="NONE"
    side="BOTH"
+[[dependencies."${mod_id}"]]
+   modId="vaultadditions"
+   # Optional dependency, Vault Additions has integration but is not required
+   mandatory=false
+   versionRange="${vault_additions_version_range}"
+   ordering="NONE"
+   side="BOTH"
