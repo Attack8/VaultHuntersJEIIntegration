@@ -4,8 +4,8 @@ import dev.attackeight.just_enough_vh.JustEnoughVH;
 import dev.attackeight.just_enough_vh.jei.category.*;
 import static dev.attackeight.just_enough_vh.jei.JEIRecipeProvider.*;
 
-import dev.attackeight.just_enough_vh.utils.ModConfig;
-import io.github.a1qs.vaultadditions.config.CustomVaultConfigRegistry;
+import dev.attackeight.just_enough_vh.JustEnoughVH.ModConfig;
+import io.github.a1qs.vaultadditions.config.Configs;
 import iskallia.vault.init.ModBlocks;
 import iskallia.vault.init.ModConfigs;
 import iskallia.vault.init.ModItems;
@@ -14,7 +14,7 @@ import iskallia.vault.integration.jei.lootinfo.LootInfoRecipeCategory;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.helpers.IGuiHelper;
-import mezz.jei.api.recipe.RecipeIngredientRole;
+import static mezz.jei.api.recipe.RecipeIngredientRole.*;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
@@ -136,10 +136,10 @@ public class TheVaultJEIPlugin implements IModPlugin {
             registration.addRecipes(PANDORAS_BOX, getFromPool(ModConfigs.PANDORAS_BOX.POOL));
         }
         if (JustEnoughVH.vaLoaded()) {
-            registration.addRecipes(VA_ARENA_STATUE, getStatueLoot(CustomVaultConfigRegistry.STATUE_LOOT_ARENA));
-            registration.addRecipes(VA_GIFT_STATUE, getStatueLoot(CustomVaultConfigRegistry.STATUE_LOOT_GIFT));
-            registration.addRecipes(VA_MEGA_GIFT_STATUE, getStatueLoot(CustomVaultConfigRegistry.STATUE_LOOT_MEGA_GIFT));
-            registration.addRecipes(VA_VAULT_STATUE, getStatueLoot(CustomVaultConfigRegistry.STATUE_LOOT_VAULT));
+            registration.addRecipes(VA_ARENA_STATUE, getStatueLoot(Configs.STATUE_LOOT_ARENA));
+            registration.addRecipes(VA_GIFT_STATUE, getStatueLoot(Configs.STATUE_LOOT_GIFT));
+            registration.addRecipes(VA_MEGA_GIFT_STATUE, getStatueLoot(Configs.STATUE_LOOT_MEGA_GIFT));
+            registration.addRecipes(VA_VAULT_STATUE, getStatueLoot(Configs.STATUE_LOOT_VAULT));
         }
     }
 
@@ -153,11 +153,11 @@ public class TheVaultJEIPlugin implements IModPlugin {
     }
 
     private LabeledLootInfoRecipeCategory makeLabeledLootInfoCategory(IGuiHelper guiHelper, RecipeType<LabeledLootInfo> recipeType, ItemLike icon) {
-        return new LabeledLootInfoRecipeCategory(guiHelper, recipeType, new ItemStack(icon), RecipeIngredientRole.INPUT);
+        return new LabeledLootInfoRecipeCategory(guiHelper, recipeType, new ItemStack(icon), INPUT);
     }
 
     private LabeledLootInfoRecipeCategory makeLabeledIngredientPoolCategory(IGuiHelper guiHelper, RecipeType<LabeledLootInfo> recipeType, ItemLike icon) {
-        return new LabeledLootInfoRecipeCategory(guiHelper, recipeType, new ItemStack(icon), RecipeIngredientRole.OUTPUT);
+        return new LabeledLootInfoRecipeCategory(guiHelper, recipeType, new ItemStack(icon), OUTPUT);
     }
 
     private ForgeItemRecipeCategory makeForgeItemCategory(IGuiHelper guiHelper, RecipeType<ForgeItem> recipeType, ItemLike icon) {

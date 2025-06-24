@@ -3,8 +3,8 @@ package dev.attackeight.just_enough_vh;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.logging.LogUtils;
-import dev.attackeight.just_enough_vh.utils.ModConfig;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -33,6 +33,23 @@ public class JustEnoughVH {
 
     public static boolean vaLoaded() {
         return ModList.get().isLoaded("vaultadditions");
+    }
+
+    public static class ModConfig {
+        public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
+        public static final ForgeConfigSpec SPEC;
+
+        private static final ForgeConfigSpec.BooleanValue SHOW;
+
+        public static boolean shouldShow() {
+            return SHOW.get();
+        }
+
+        static {
+            SHOW = BUILDER.comment("Should JEI show loot tables for items not used in the base modpack")
+                    .define("enable_hidden", false);
+            SPEC = BUILDER.build();
+        }
     }
 
 }

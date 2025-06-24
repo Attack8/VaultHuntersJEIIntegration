@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class JEIRecipeProvider {
 
-    protected static <R extends VaultForgeRecipe, T extends ConfigForgeRecipe<R>, V extends ForgeRecipesConfig<T, R>> List<ForgeItem> getForgeRecipes(V config) {
+    protected static <R extends VaultForgeRecipe, T extends ConfigForgeRecipe<R>, S extends ForgeRecipesConfig<T, R>> List<ForgeItem> getForgeRecipes(S config) {
         List<ForgeItem> recipes = new ArrayList<>();
         config.getConfigRecipes().forEach(b -> recipes.add(new ForgeItem(b.makeRecipe().getInputs(), b.makeRecipe().getDisplayOutput(100))));
         return recipes;
@@ -64,6 +64,7 @@ public class JEIRecipeProvider {
         return stack;
     }
 
+    @SuppressWarnings("unchecked")
     protected static List<LabeledLootInfo> getShopPedestalLoot() {
         List<LabeledLootInfo> lootInfo = new ArrayList<>();
         List<Pair<List<Triple<ItemStack, IntRangeEntry, Double>>, Integer>> pedestalInfo;
@@ -276,12 +277,11 @@ public class JEIRecipeProvider {
     protected static <T extends AbstractStatueLootConfig> List<LabeledLootInfo> getStatueLoot(T lootConfig) {
         List<LabeledLootInfo> toReturn = new ArrayList<>();
         List<ItemStack> items = new ArrayList<>();
-        AbstractStatueLootConfigAccessor accessor = (AbstractStatueLootConfigAccessor) lootConfig;
         int interval = lootConfig.getInterval();
-        int minCount = accessor.getMinItemGenerated();
-        int maxCount = accessor.getMaxItemGenerated();
-        int totalWeight = accessor.getDrops().getTotalWeight();
-        accessor.getDrops().forEach((k, v) -> {
+        int minCount = lootConfig.getRollRange().getMin();
+        int maxCount = lootConfig.getRollRange().getMax();
+        int totalWeight = lootConfig.getDrops().getTotalWeight();
+        lootConfig.getDrops().forEach((k, v) -> {
             ItemStack result = k.generateItemStack();
             double chance = (v.doubleValue() / totalWeight) * 100;
             CompoundTag nbt = result.getOrCreateTagElement("display");

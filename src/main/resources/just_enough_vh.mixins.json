@@ -6,11 +6,9 @@
   "refmap": "TheVaultJEI.refmap.json",
   "plugin": "dev.attackeight.just_enough_vh.JustEnoughVHMixinPlugin",
   "mixins": [
-    "AbstractStatueLootConfigAccessor",
     "AltarIngredientAccessor",
     "ClientEventsMixin",
     "IngredientAmountAccessor",
-    "IntegrationJEIMixin",
     "ProductEntryAccessor",
     "RewardEntryAccessor",
     "RewardPoolAccessor",

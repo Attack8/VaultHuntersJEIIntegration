@@ -8,6 +8,7 @@ buildscript {
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '6.+', changing: true
         classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
+
     }
 }
 // Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
@@ -145,6 +146,9 @@ repositories {
         name = "Illusive Soulworks maven"
         url = "https://maven.theillusivec4.top/"
     }
+    maven {
+        url = "https://jitpack.io"
+    }
 
     // If you have mod jar dependencies in ./libs, you can declare them as a repository like so:
     flatDir {
@@ -168,8 +172,8 @@ dependencies {
     runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}") // Adds the full JEI mod as a runtime dependency
     // implementation fg.deobf("com.tterrag.registrate:Registrate:MC${mc_version}-${registrate_version}") // Adds registrate as a dependency
 
-    compileOnly fg.deobf("curse.maven:vault-additions-1166562:6326116")
-    runtimeOnly fg.deobf("curse.maven:vault-additions-1166562:6326116")
+    compileOnly "com.github.Attack8:vaultadditions:v1.16.0"
+    runtimeOnly "com.github.Attack8:vaultadditions:v1.16.0"
 
     //implementation fg.deobf("vazkii:autoreglib:AutoRegLib:${arl_version}")
     //implementation fg.deobf("vazkii:quark:Quark:${quark_version}")
@@ -180,7 +184,7 @@ dependencies {
     runtimeOnly(fg.deobf("top.theillusivec4.curios:curios-forge:${mc_version}-${curios_version}"))
     implementation fg.deobf("curse.maven:geckolib-388172:4181370")
 
-    implementation fg.deobf("curse.maven:vault-hunters-official-mod-458203:6367278")
+    implementation fg.deobf("curse.maven:vault-hunters-official-mod-458203:6477559")
 
     runtimeOnly fg.deobf("curse.maven:refined-storage-243076:4217424")
     runtimeOnly fg.deobf("curse.maven:mekanism-268560:3875976")

@@ -31,14 +31,6 @@ public record LabeledLootInfo(List<List<ItemStack>> itemStackList, Component lab
         return this.line2;
     }
 
-    public List<ItemStack> getSimpleList() {
-        List<ItemStack> toReturn = new ArrayList<>();
-        for (List<ItemStack> list : itemStackList) {
-            toReturn.add(list.get(0));
-        }
-        return toReturn;
-    }
-
     public static LabeledLootInfo of(List<ItemStack> itemStackList, Component label, @Nullable Component label2) {
         List<List<ItemStack>> toUse = new ArrayList<>();
         for (ItemStack stack: itemStackList) {
