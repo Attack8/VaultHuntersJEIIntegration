@@ -45,3 +45,9 @@ Just Enough VH v1.0
  - Added Trinket Forge Recipe Category
  - Update to VaultAdditions 1.15
  - Backend code improvements
+
+Just Enough VH v1.1
+ - Update to Vault Hunters 3.19
+ - Added Optional Material Box Recipe Category
+ - Fixed bug where item roles were incorrect for all categories
+ - Backend code improvements

@@ -12,7 +12,4 @@ public interface RewardEntryAccessor {
     @Accessor(remap = false)
     IntRangeEntry getVaultExp();
 
-    @Accessor(remap = false)
-    ItemStackPool getItemPool();
-
 }

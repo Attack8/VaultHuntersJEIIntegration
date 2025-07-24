@@ -5,10 +5,10 @@ import iskallia.vault.config.entry.IntRangeEntry;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(AltarIngredientEntry.class)
+@Mixin(value = AltarIngredientEntry.class, remap = false)
 public interface IngredientAmountAccessor {
 
-    @Accessor(remap = false)
+    @Accessor
     IntRangeEntry getAmount();
 
 }

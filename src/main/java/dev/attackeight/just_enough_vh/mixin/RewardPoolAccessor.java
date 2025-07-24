@@ -7,10 +7,10 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 import java.util.HashMap;
 
-@Mixin(RewardConfig.class)
+@Mixin(value = RewardConfig.class, remap = false)
 public interface RewardPoolAccessor {
 
-    @Accessor(remap = false)
+    @Accessor
     HashMap<String, LevelEntryMap<RewardConfig.RewardEntry>> getPOOLS();
 
 }

@@ -9,9 +9,9 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 import java.util.Map;
 
-@Mixin(VaultAltarIngredientsConfig.class)
+@Mixin(value = VaultAltarIngredientsConfig.class, remap = false)
 public interface AltarIngredientAccessor {
 
-    @Accessor(remap = false)
+    @Accessor
     LevelEntryMap<Map<String, WeightedList<AltarIngredientEntry>>> getLEVELS();
 }

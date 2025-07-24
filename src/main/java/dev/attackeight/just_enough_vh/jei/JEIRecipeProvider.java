@@ -4,8 +4,10 @@ import dev.attackeight.just_enough_vh.JustEnoughVH;
 import dev.attackeight.just_enough_vh.mixin.*;
 import io.github.a1qs.vaultadditions.config.vault.AbstractStatueLootConfig;
 import iskallia.vault.config.OmegaSoulShardConfig;
+import iskallia.vault.config.ShopPedestalConfig;
 import iskallia.vault.config.SoulShardConfig;
 import iskallia.vault.config.entry.IntRangeEntry;
+import iskallia.vault.config.entry.LevelEntryList;
 import iskallia.vault.config.entry.recipe.ConfigForgeRecipe;
 import iskallia.vault.config.entry.vending.ProductEntry;
 import iskallia.vault.config.recipe.ForgeRecipesConfig;
@@ -21,7 +23,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 
@@ -47,21 +52,8 @@ public class JEIRecipeProvider {
         ProductEntryAccessor entry = (ProductEntryAccessor) productEntry.value;
         if (!ForgeRegistries.ITEMS.containsKey(productEntry.value.getItem().getRegistryName()))
             return ItemStack.EMPTY;
-        ItemStack stack = new ItemStack(productEntry.value.getItem(), entry.getAmountMax());
-        CompoundTag nbt = stack.getOrCreateTagElement("display");
-        ListTag list = nbt.getList("Lore", 8);
-        MutableComponent component = new TextComponent("Chance: ");
-        double chance = ((double) productEntry.weight / totalWeight) * 100;
-        component.append(String.format("%.2f", chance));
-        component.append("%");
-        list.add(StringTag.valueOf(Component.Serializer.toJson(component.withStyle(ChatFormatting.YELLOW))));
-        if (entry.getAmountMax() != entry.getAmountMin()) {
-            MutableComponent countLabel = new TextComponent("Count: ");
-            countLabel.append(entry.getAmountMin() + " - " + entry.getAmountMax());
-            list.add(StringTag.valueOf(Component.Serializer.toJson(countLabel)));
-        }
-        nbt.put("Lore", list);
-        return stack;
+        return formatItemStack(productEntry.value.getItem(), entry.getAmountMin(),
+                entry.getAmountMax(), productEntry.weight, totalWeight);
     }
 
     @SuppressWarnings("unchecked")
@@ -83,22 +75,10 @@ public class JEIRecipeProvider {
             List<ItemStack> offers = new ArrayList<>();
             tier.forEach(offerInfo -> {
                 ItemStack currentOffer = offerInfo.getLeft();
-                int minPrice = offerInfo.getMiddle().getMin();
-                int maxPrice = offerInfo.getMiddle().getMax();
-                double chance = (offerInfo.getRight() / totalWeight.get()) * 100;
-                CompoundTag nbt = currentOffer.getOrCreateTagElement("display");
-                ListTag list = nbt.getList("Lore", 8);
-                MutableComponent chanceLabel = new TextComponent("Chance: ");
-                chanceLabel.append(String.format("%.2f", chance));
-                chanceLabel.append("%");
-                list.add(StringTag.valueOf(Component.Serializer.toJson(chanceLabel.withStyle(ChatFormatting.YELLOW))));
-                MutableComponent costLabel = new TextComponent("Cost: ");
-                costLabel.append(minPrice + " - " + maxPrice);
-                list.add(StringTag.valueOf(Component.Serializer.toJson(costLabel)));
-                nbt.put("Lore", list);
                 if (!JustEnoughVH.SHOP_PEDESTAL_ITEMS.containsKey(currentOffer.getItem().getRegistryName()))
                     JustEnoughVH.SHOP_PEDESTAL_ITEMS.put(currentOffer.getItem().getRegistryName(), minLevel);
-                offers.add(currentOffer);
+                offers.add(formatItemStack(currentOffer.getItem(), offerInfo.getMiddle().getMin(),
+                        offerInfo.getMiddle().getMax(), offerInfo.getRight().intValue(), totalWeight.get(), true));
             });
             lootInfo.add(LabeledLootInfo.of(offers, new TextComponent("Level " + minLevel + "+ "), null));
         });
@@ -116,22 +96,10 @@ public class JEIRecipeProvider {
             b.getShardTrades().forEach(d -> totalWeight.addAndGet(d.weight));
             b.getShardTrades().forEach( c -> {
                 ItemStack currentTrade = c.value.getItemEntry().createItemStack();
-                int minPrice = c.value.getMinPrice();
-                int maxPrice = c.value.getMaxPrice();
-                double chance = ((double) c.weight / totalWeight.get()) * 100 * 2;
-                CompoundTag nbt = currentTrade.getOrCreateTagElement("display");
-                ListTag list = nbt.getList("Lore", 8);
-                MutableComponent chanceLabel = new TextComponent("Chance: ");
-                chanceLabel.append(String.format("%.2f", chance));
-                chanceLabel.append("%");
-                list.add(StringTag.valueOf(Component.Serializer.toJson(chanceLabel.withStyle(ChatFormatting.YELLOW))));
-                MutableComponent costLabel = new TextComponent("Cost: ");
-                costLabel.append(minPrice + " - " + maxPrice);
-                list.add(StringTag.valueOf(Component.Serializer.toJson(costLabel)));
-                nbt.put("Lore", list);
                 if (!JustEnoughVH.BLACK_MARKET_ITEMS.containsKey(currentTrade.getItem().getRegistryName()))
                     JustEnoughVH.BLACK_MARKET_ITEMS.put(currentTrade.getItem().getRegistryName(), minLevel);
-                shardTrades.add(currentTrade);
+                shardTrades.add(formatItemStack(currentTrade.getItem(), c.value.getMinPrice(),
+                        c.value.getMaxPrice(), c.weight, totalWeight.get(), true));
             });
             lootInfo.add(LabeledLootInfo.of(shardTrades, new TextComponent("Common Slot: Level " + minLevel + "+ "), new TextComponent("Soul Trade Price: " + randomPrice)));
         });
@@ -143,22 +111,10 @@ public class JEIRecipeProvider {
             b.getShardTrades().forEach(d -> totalWeight.addAndGet(d.weight));
             b.getShardTrades().forEach( c -> {
                 ItemStack currentTrade = c.value.getItem();
-                int minPrice = c.value.getMinPrice();
-                int maxPrice = c.value.getMaxPrice();
-                double chance = ((double) c.weight / totalWeight.get()) * 100;
-                CompoundTag nbt = currentTrade.getOrCreateTagElement("display");
-                ListTag list = nbt.getList("Lore", 8);
-                MutableComponent chanceLabel = new TextComponent("Chance: ");
-                chanceLabel.append(String.format("%.2f", chance));
-                chanceLabel.append("%");
-                list.add(StringTag.valueOf(Component.Serializer.toJson(chanceLabel.withStyle(ChatFormatting.YELLOW))));
-                MutableComponent costLabel = new TextComponent("Cost: ");
-                costLabel.append(minPrice + " - " + maxPrice);
-                list.add(StringTag.valueOf(Component.Serializer.toJson(costLabel)));
-                nbt.put("Lore", list);
                 if (!JustEnoughVH.OMEGA_BLACK_MARKET_ITEMS.containsKey(currentTrade.getItem().getRegistryName()))
                     JustEnoughVH.OMEGA_BLACK_MARKET_ITEMS.put(currentTrade.getItem().getRegistryName(), minLevel);
-                shardTrades.add(currentTrade);
+                shardTrades.add(formatItemStack(currentTrade.getItem(), c.value.getMinPrice(),
+                        c.value.getMaxPrice(), c.weight, totalWeight.get(), true));
             });
             lootInfo.add(LabeledLootInfo.of(shardTrades, new TextComponent("Omega Slot: Level " + minLevel + "+ "), null));
         });
@@ -172,22 +128,9 @@ public class JEIRecipeProvider {
             List<ItemStack> results = new ArrayList<>();
             k.forEach(d -> totalWeight.addAndGet(d.weight));
             k.forEach(c -> {
-                ProductEntryAccessor entry = (ProductEntryAccessor) c.value;
-                ItemStack result = new ItemStack(c.value.getItem(), entry.getAmountMax());
-                double chance = ((double) c.weight / totalWeight.get()) * 100;
-                CompoundTag nbt = result.getOrCreateTagElement("display");
-                ListTag list = nbt.getList("Lore", 8);
-                MutableComponent chanceLabel = new TextComponent("Chance: ");
-                chanceLabel.append(String.format("%.2f", chance));
-                chanceLabel.append("%");
-                list.add(StringTag.valueOf(Component.Serializer.toJson(chanceLabel.withStyle(ChatFormatting.YELLOW))));
-                if (entry.getAmountMin() != entry.getAmountMax()) {
-                    MutableComponent countLabel = new TextComponent("Count: ");
-                    countLabel.append(entry.getAmountMin() + " - " + entry.getAmountMax());
-                    list.add(StringTag.valueOf(Component.Serializer.toJson(countLabel)));
-                }
-                nbt.put("Lore", list);
-                results.add(result);
+                ProductEntryAccessor accessor = (ProductEntryAccessor) c;
+                results.add(formatItemStack(c.value.getItem(), accessor.getAmountMin(),
+                        accessor.getAmountMax(), c.weight, totalWeight.get()));
             });
             lootInfo.add(LabeledLootInfo.of(results, new TextComponent("Mod: " + mod), null));
         });
@@ -205,24 +148,11 @@ public class JEIRecipeProvider {
                     List<ItemStack> results = new ArrayList<>();
                     RewardEntryAccessor rewardEntry = (RewardEntryAccessor) rewards;
                     IntRangeEntry vaultExp = rewardEntry.getVaultExp();
-                    rewardEntry.getItemPool().getPool().forEach(stack -> totalWeight.addAndGet(stack.weight));
-                    rewardEntry.getItemPool().getPool().forEach(stack -> {
-                        ItemStack result = new ItemStack(stack.value.getMatchingStack().getItem(), stack.value.getMaxCount());
-                        double chance = ((double) stack.weight / totalWeight.get()) * 100;
-                        CompoundTag nbt = result.getOrCreateTagElement("display");
-                        ListTag list = nbt.getList("Lore", 8);
-                        MutableComponent chanceLabel = new TextComponent("Chance: ");
-                        chanceLabel.append(String.format("%.2f", chance));
-                        chanceLabel.append("%");
-                        list.add(StringTag.valueOf(Component.Serializer.toJson(chanceLabel.withStyle(ChatFormatting.YELLOW))));
-                        if (stack.value.getMinCount() != stack.value.getMaxCount()) {
-                            MutableComponent countLabel = new TextComponent("Count: ");
-                            countLabel.append(stack.value.getMinCount() + " - " + stack.value.getMaxCount());
-                            list.add(StringTag.valueOf(Component.Serializer.toJson(countLabel)));
-                        }
-                        nbt.put("Lore", list);
-                        results.add(result);
-                    });
+                    rewards.getItemPool().getPool().forEach(stack -> totalWeight.addAndGet(stack.weight));
+                    rewards.getItemPool().getPool().forEach(stack ->
+                        results.add(formatItemStack(stack.value.getMatchingStack().getItem(), stack.value.getMinCount(),
+                                stack.value.getMaxCount(), stack.weight, totalWeight.get()))
+                    );
                     lootInfo.put(minLevel, LabeledLootInfo.of(results,
                             new TextComponent("Reward Pool: " + id + " Level: " + minLevel + "+"),
                             new TextComponent("Vault Exp Reward: " + vaultExp.getMin() + "-" + vaultExp.getMax())));
@@ -247,21 +177,8 @@ public class JEIRecipeProvider {
                     IntRangeEntry amounts = ((IngredientAmountAccessor) stack.value).getAmount();
                     List<ItemStack> stacks = new ArrayList<>();
                     for (ItemStack stackInGroup : stack.value.getItems()) {
-                        ItemStack result = new ItemStack(stackInGroup.getItem(), amounts.getMax());
-                        double chance = ((double) stack.weight / totalWeight.get()) * 100;
-                        CompoundTag nbt = result.getOrCreateTagElement("display");
-                        ListTag list = nbt.getList("Lore", 8);
-                        MutableComponent chanceLabel = new TextComponent("Chance: ");
-                        chanceLabel.append(String.format("%.2f", chance));
-                        chanceLabel.append("%");
-                        list.add(StringTag.valueOf(Component.Serializer.toJson(chanceLabel.withStyle(ChatFormatting.YELLOW))));
-                        if (amounts.getMin() != amounts.getMax()) {
-                            MutableComponent countLabel = new TextComponent("Count: ");
-                            countLabel.append(amounts.getMin() + " - " + amounts.getMax());
-                            list.add(StringTag.valueOf(Component.Serializer.toJson(countLabel)));
-                        }
-                        nbt.put("Lore", list);
-                        stacks.add(result);
+                        stacks.add(formatItemStack(stackInGroup.getItem(), amounts.getMin(),
+                                amounts.getMax(), stack.weight, totalWeight.get()));
                     }
                     results.add(stacks);
                 });
@@ -274,6 +191,31 @@ public class JEIRecipeProvider {
         return toReturn;
     }
 
+    protected static List<LabeledLootInfo> getMaterialBoxLoot() {
+        List<LabeledLootInfo> toReturn = new ArrayList<>();
+        TreeMap<Integer, List<LabeledLootInfo>> lootInfo = new TreeMap<>();
+        ModConfigs.MATERIAL_BOX.LEVELS.forEach((levelEntry) -> {
+            List<LabeledLootInfo> pool = new ArrayList<>();
+            AtomicInteger totalWeight = new AtomicInteger();
+            List<List<ItemStack>> results = new ArrayList<>();
+            levelEntry.pool.forEach(stack -> totalWeight.addAndGet(stack.weight));
+            levelEntry.pool.forEach((group, weight) -> {
+                List<ItemStack> stacks = new ArrayList<>();
+                for (ProductEntry stackInGroup : group.entries) {
+                    ProductEntryAccessor accessor = (ProductEntryAccessor) stackInGroup;
+                    stacks.add(formatItemStack(stackInGroup.getItem(), accessor.getAmountMin(),
+                            accessor.getAmountMax(), weight.intValue(), totalWeight.get()));
+                }
+                results.add(stacks);
+                pool.add(new LabeledLootInfo(results,
+                        new TextComponent(" Level: " + levelEntry.level + "+")));
+            });
+            lootInfo.put(levelEntry.getLevel(), pool);
+        });
+        lootInfo.forEach((i, n) -> toReturn.addAll(n));
+        return toReturn;
+    }
+
     protected static <T extends AbstractStatueLootConfig> List<LabeledLootInfo> getStatueLoot(T lootConfig) {
         List<LabeledLootInfo> toReturn = new ArrayList<>();
         List<ItemStack> items = new ArrayList<>();
@@ -281,22 +223,37 @@ public class JEIRecipeProvider {
         int minCount = lootConfig.getRollRange().getMin();
         int maxCount = lootConfig.getRollRange().getMax();
         int totalWeight = lootConfig.getDrops().getTotalWeight();
-        lootConfig.getDrops().forEach((k, v) -> {
-            ItemStack result = k.generateItemStack();
-            double chance = (v.doubleValue() / totalWeight) * 100;
-            CompoundTag nbt = result.getOrCreateTagElement("display");
-            ListTag list = nbt.getList("Lore", 8);
-            MutableComponent chanceLabel = new TextComponent("Chance: ");
-            chanceLabel.append(String.format("%.2f", chance));
-            chanceLabel.append("%");
-            list.add(StringTag.valueOf(Component.Serializer.toJson(chanceLabel.withStyle(ChatFormatting.YELLOW))));
-            nbt.put("Lore", list);
-            items.add(result);
+        lootConfig.getDrops().forEach((product, weight) -> {
+            ProductEntryAccessor accessor = (ProductEntryAccessor) product;
+            items.add(formatItemStack(product.getItem(), accessor.getAmountMin(),
+                    accessor.getAmountMax(), weight.intValue(), totalWeight));
         });
         toReturn.add(LabeledLootInfo.of(items,
                 new TextComponent("Interval: " + interval),
                 new TextComponent("Count: " + minCount + " - " + maxCount)
         ));
         return toReturn;
+    }
+
+    private static ItemStack formatItemStack(ItemLike item, int amountMin, int amountMax, int weight, int totalWeight, boolean cost) {
+        ItemStack result = new ItemStack(item, amountMax);
+        double chance = ((double) weight / totalWeight) * 100;
+        CompoundTag nbt = result.getOrCreateTagElement("display");
+        ListTag list = nbt.getList("Lore", 8);
+        MutableComponent chanceLabel = new TextComponent("Chance: ");
+        chanceLabel.append(String.format("%.2f", chance));
+        chanceLabel.append("%");
+        list.add(StringTag.valueOf(Component.Serializer.toJson(chanceLabel.withStyle(ChatFormatting.YELLOW))));
+        if (amountMin != amountMax) {
+            MutableComponent countLabel = new TextComponent(cost ? "Cost: " : "Count: ");
+            countLabel.append(amountMin + " - " + amountMax);
+            list.add(StringTag.valueOf(Component.Serializer.toJson(countLabel)));
+        }
+        nbt.put("Lore", list);
+        return result;
+    }
+
+    private static ItemStack formatItemStack(ItemLike item, int amountMin, int amountMax, int weight, int totalWeight) {
+        return formatItemStack(item, amountMin, amountMax, weight, totalWeight, false);
     }
 }

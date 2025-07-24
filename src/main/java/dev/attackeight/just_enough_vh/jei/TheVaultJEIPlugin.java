@@ -30,25 +30,26 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class TheVaultJEIPlugin implements IModPlugin {
 
-    public static final RecipeType<ForgeItem> CATALYSTS = RecipeType.create("the_vault", "forge_catalysts", ForgeItem.class);
-    public static final RecipeType<ForgeItem> TOOLS = RecipeType.create("the_vault", "forge_tools", ForgeItem.class);
-    public static final RecipeType<ForgeItem> GEAR = RecipeType.create("the_vault", "forge_gear", ForgeItem.class);
-    public static final RecipeType<ForgeItem> TRINKETS = RecipeType.create("the_vault", "trinket", ForgeItem.class);
-    public static final RecipeType<ForgeItem> INSCRIPTIONS = RecipeType.create("the_vault", "forge_inscription", ForgeItem.class);
-    public static final RecipeType<ForgeItem> JEWEL_CRAFTING = RecipeType.create("the_vault", "jewel_crafting", ForgeItem.class);
-    public static final RecipeType<LootInfo> MYSTERY_BOX = RecipeType.create("the_vault", "mystery_box", LootInfo.class);
-    public static final RecipeType<LootInfo> MYSTERY_EGG = RecipeType.create("the_vault", "mystery_egg", LootInfo.class);
-    public static final RecipeType<LootInfo> HOSTILE_EGG = RecipeType.create("the_vault", "hostile_egg", LootInfo.class);
-    public static final RecipeType<LootInfo> PANDORAS_BOX = RecipeType.create("the_vault", "pandoras_box", LootInfo.class);
-    public static final RecipeType<LabeledLootInfo> BLACK_MARKET = RecipeType.create("the_vault", "black_market", LabeledLootInfo.class);
-    public static final RecipeType<LabeledLootInfo> MOD_BOX = RecipeType.create("the_vault", "mod_box", LabeledLootInfo.class);
-    public static final RecipeType<LabeledLootInfo> BOUNTY_REWARDS = RecipeType.create("the_vault", "bounty_rewards", LabeledLootInfo.class);
-    public static final RecipeType<LabeledLootInfo> SHOP_PEDESTAL = RecipeType.create("the_vault", "shop_pedestal", LabeledLootInfo.class);
+    public static final RecipeType<ForgeItem> CATALYSTS = RecipeType.create(JustEnoughVH.ID, "forge_catalysts", ForgeItem.class);
+    public static final RecipeType<ForgeItem> TOOLS = RecipeType.create(JustEnoughVH.ID, "forge_tools", ForgeItem.class);
+    public static final RecipeType<ForgeItem> GEAR = RecipeType.create(JustEnoughVH.ID, "forge_gear", ForgeItem.class);
+    public static final RecipeType<ForgeItem> TRINKETS = RecipeType.create(JustEnoughVH.ID, "trinket", ForgeItem.class);
+    public static final RecipeType<ForgeItem> INSCRIPTIONS = RecipeType.create(JustEnoughVH.ID, "forge_inscription", ForgeItem.class);
+    public static final RecipeType<ForgeItem> JEWEL_CRAFTING = RecipeType.create(JustEnoughVH.ID, "jewel_crafting", ForgeItem.class);
+    public static final RecipeType<LootInfo> MYSTERY_BOX = RecipeType.create(JustEnoughVH.ID, "mystery_box", LootInfo.class);
+    public static final RecipeType<LootInfo> MYSTERY_EGG = RecipeType.create(JustEnoughVH.ID, "mystery_egg", LootInfo.class);
+    public static final RecipeType<LootInfo> HOSTILE_EGG = RecipeType.create(JustEnoughVH.ID, "hostile_egg", LootInfo.class);
+    public static final RecipeType<LootInfo> PANDORAS_BOX = RecipeType.create(JustEnoughVH.ID, "pandoras_box", LootInfo.class);
+    public static final RecipeType<LabeledLootInfo> BLACK_MARKET = RecipeType.create(JustEnoughVH.ID, "black_market", LabeledLootInfo.class);
+    public static final RecipeType<LabeledLootInfo> MOD_BOX = RecipeType.create(JustEnoughVH.ID, "mod_box", LabeledLootInfo.class);
+    public static final RecipeType<LabeledLootInfo> BOUNTY_REWARDS = RecipeType.create(JustEnoughVH.ID, "bounty_rewards", LabeledLootInfo.class);
+    public static final RecipeType<LabeledLootInfo> SHOP_PEDESTAL = RecipeType.create(JustEnoughVH.ID, "shop_pedestal", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> VA_ARENA_STATUE = RecipeType.create("vaultadditions", "arena_statue", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> VA_GIFT_STATUE = RecipeType.create("vaultadditions", "gift_statue", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> VA_MEGA_GIFT_STATUE = RecipeType.create("vaultadditions", "mega_gift_statue", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> VA_VAULT_STATUE = RecipeType.create("vaultadditions", "vault_statue", LabeledLootInfo.class);
-    public static final RecipeType<LabeledLootInfo> ALTAR_INGREDIENTS = RecipeType.create("the_vault", "altar_ingredients", LabeledLootInfo.class);
+    public static final RecipeType<LabeledLootInfo> ALTAR_INGREDIENTS = RecipeType.create(JustEnoughVH.ID, "altar_ingredients", LabeledLootInfo.class);
+    public static final RecipeType<LabeledLootInfo> MATERIAL_BOX = RecipeType.create(JustEnoughVH.ID, "material_box", LabeledLootInfo.class);
 
     public TheVaultJEIPlugin() {}
 
@@ -71,6 +72,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
 
         if (ModConfig.shouldShow()) {
             registration.addRecipeCatalyst(new ItemStack(ModItems.PANDORAS_BOX), PANDORAS_BOX);
+            registration.addRecipeCatalyst(new ItemStack(ModItems.MATERIAL_BOX), MATERIAL_BOX);
         }
 
         if (JustEnoughVH.vaLoaded()) {
@@ -101,6 +103,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
 
         if (ModConfig.shouldShow()) {
             registration.addRecipeCategories(makeLootInfoCategory(guiHelper, PANDORAS_BOX, ModItems.PANDORAS_BOX));
+            registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, MATERIAL_BOX, ModItems.MATERIAL_BOX));
         }
         if (JustEnoughVH.vaLoaded()) {
             registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, VA_ARENA_STATUE,
@@ -133,6 +136,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
 
         if (ModConfig.shouldShow()) {
             registration.addRecipes(PANDORAS_BOX, getFromPool(ModConfigs.PANDORAS_BOX.POOL));
+            registration.addRecipes(MATERIAL_BOX, getMaterialBoxLoot());
         }
         if (JustEnoughVH.vaLoaded()) {
             // Register Vault Additions recipes in a separate class to avoid ClassNotFoundException
@@ -150,11 +154,11 @@ public class TheVaultJEIPlugin implements IModPlugin {
     }
 
     private LabeledLootInfoRecipeCategory makeLabeledLootInfoCategory(IGuiHelper guiHelper, RecipeType<LabeledLootInfo> recipeType, ItemLike icon) {
-        return new LabeledLootInfoRecipeCategory(guiHelper, recipeType, new ItemStack(icon), INPUT);
+        return new LabeledLootInfoRecipeCategory(guiHelper, recipeType, new ItemStack(icon), OUTPUT);
     }
 
     private LabeledLootInfoRecipeCategory makeLabeledIngredientPoolCategory(IGuiHelper guiHelper, RecipeType<LabeledLootInfo> recipeType, ItemLike icon) {
-        return new LabeledLootInfoRecipeCategory(guiHelper, recipeType, new ItemStack(icon), OUTPUT);
+        return new LabeledLootInfoRecipeCategory(guiHelper, recipeType, new ItemStack(icon), INPUT);
     }
 
     private ForgeItemRecipeCategory makeForgeItemCategory(IGuiHelper guiHelper, RecipeType<ForgeItem> recipeType, ItemLike icon) {

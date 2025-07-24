@@ -4,13 +4,13 @@ import iskallia.vault.config.entry.vending.ProductEntry;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(ProductEntry.class)
+@Mixin(value = ProductEntry.class, remap = false)
 public interface ProductEntryAccessor {
 
-    @Accessor(remap = false)
+    @Accessor
     int getAmountMin();
 
-    @Accessor(remap = false)
+    @Accessor
     int getAmountMax();
 
 }

@@ -4,11 +4,11 @@
   "package": "dev.attackeight.just_enough_vh.mixin",
   "compatibilityLevel": "JAVA_8",
   "refmap": "TheVaultJEI.refmap.json",
-  "plugin": "dev.attackeight.just_enough_vh.JustEnoughVHMixinPlugin",
   "mixins": [
     "AltarIngredientAccessor",
     "ClientEventsMixin",
     "IngredientAmountAccessor",
+    "IntegrationJEIMixin",
     "ProductEntryAccessor",
     "RewardEntryAccessor",
     "RewardPoolAccessor",
