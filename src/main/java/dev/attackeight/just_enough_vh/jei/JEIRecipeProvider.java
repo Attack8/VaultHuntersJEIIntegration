@@ -128,7 +128,7 @@ public class JEIRecipeProvider {
             List<ItemStack> results = new ArrayList<>();
             k.forEach(d -> totalWeight.addAndGet(d.weight));
             k.forEach(c -> {
-                ProductEntryAccessor accessor = (ProductEntryAccessor) c;
+                ProductEntryAccessor accessor = (ProductEntryAccessor) c.value;
                 results.add(formatItemStack(c.value.getItem(), accessor.getAmountMin(),
                         accessor.getAmountMax(), c.weight, totalWeight.get()));
             });
