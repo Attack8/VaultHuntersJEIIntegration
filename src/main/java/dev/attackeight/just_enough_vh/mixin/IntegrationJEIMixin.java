@@ -10,7 +10,6 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
@@ -19,14 +18,10 @@ import java.util.List;
 @Mixin(value = IntegrationJEI.class, remap = false)
 public class IntegrationJEIMixin {
 
-    @Unique private static List<RecipeType<?>> justEnoughVH$removedRecipeTypes = new ArrayList<>();
-
     @Redirect(method = "registerCategories", at = @At(value = "INVOKE", target = "Lmezz/jei/api/registration/IRecipeCategoryRegistration;addRecipeCategories([Lmezz/jei/api/recipe/category/IRecipeCategory;)V"))
     private void removeCats(IRecipeCategoryRegistration instance, IRecipeCategory<?>[] iRecipeCategories) {
-        if (iRecipeCategories[0] instanceof WeightedListJEICategory || iRecipeCategories[0] instanceof MaterialBoxJEICategory) {
-            justEnoughVH$removedRecipeTypes.add(iRecipeCategories[0].getRecipeType());
+        if (iRecipeCategories[0] instanceof WeightedListJEICategory || iRecipeCategories[0] instanceof MaterialBoxJEICategory)
             return;
-        }
         instance.addRecipeCategories(iRecipeCategories);
     }
 
