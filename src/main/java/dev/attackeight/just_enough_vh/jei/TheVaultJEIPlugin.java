@@ -5,6 +5,7 @@ import dev.attackeight.just_enough_vh.jei.category.*;
 import static dev.attackeight.just_enough_vh.jei.JEIRecipeProvider.*;
 
 import dev.attackeight.just_enough_vh.JustEnoughVH.ModConfig;
+import iskallia.vault.core.vault.Vault;
 import iskallia.vault.init.ModBlocks;
 import iskallia.vault.init.ModConfigs;
 import iskallia.vault.init.ModItems;
@@ -106,14 +107,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
             registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, MATERIAL_BOX, ModItems.MATERIAL_BOX));
         }
         if (JustEnoughVH.vaLoaded()) {
-            registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, VA_ARENA_STATUE,
-                    io.github.a1qs.vaultadditions.init.ModBlocks.LOOT_STATUE_ARENA.get()));
-            registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, VA_GIFT_STATUE,
-                    io.github.a1qs.vaultadditions.init.ModBlocks.LOOT_STATUE_GIFT.get()));
-            registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, VA_MEGA_GIFT_STATUE,
-                    io.github.a1qs.vaultadditions.init.ModBlocks.LOOT_STATUE_GIFT_MEGA.get()));
-            registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, VA_VAULT_STATUE,
-                    io.github.a1qs.vaultadditions.init.ModBlocks.LOOT_STATUE_VAULT.get()));
+            VaultAdditionsJEIPlugin.registerStatueCategories(registration, guiHelper);
         }
     }
 
@@ -149,19 +143,19 @@ public class TheVaultJEIPlugin implements IModPlugin {
         return JustEnoughVH.rl("jei_integration");
     }
 
-    private LootInfoRecipeCategory makeLootInfoCategory(IGuiHelper guiHelper, RecipeType<LootInfo> recipeType, ItemLike icon) {
+    public static LootInfoRecipeCategory makeLootInfoCategory(IGuiHelper guiHelper, RecipeType<LootInfo> recipeType, ItemLike icon) {
         return new LootInfoRecipeCategory(guiHelper, recipeType, new ItemStack(icon), icon.asItem().getName(new ItemStack(icon)));
     }
 
-    private LabeledLootInfoRecipeCategory makeLabeledLootInfoCategory(IGuiHelper guiHelper, RecipeType<LabeledLootInfo> recipeType, ItemLike icon) {
+    public static LabeledLootInfoRecipeCategory makeLabeledLootInfoCategory(IGuiHelper guiHelper, RecipeType<LabeledLootInfo> recipeType, ItemLike icon) {
         return new LabeledLootInfoRecipeCategory(guiHelper, recipeType, new ItemStack(icon), OUTPUT);
     }
 
-    private LabeledLootInfoRecipeCategory makeLabeledIngredientPoolCategory(IGuiHelper guiHelper, RecipeType<LabeledLootInfo> recipeType, ItemLike icon) {
+    public static LabeledLootInfoRecipeCategory makeLabeledIngredientPoolCategory(IGuiHelper guiHelper, RecipeType<LabeledLootInfo> recipeType, ItemLike icon) {
         return new LabeledLootInfoRecipeCategory(guiHelper, recipeType, new ItemStack(icon), INPUT);
     }
 
-    private ForgeItemRecipeCategory makeForgeItemCategory(IGuiHelper guiHelper, RecipeType<ForgeItem> recipeType, ItemLike icon) {
+    public static ForgeItemRecipeCategory makeForgeItemCategory(IGuiHelper guiHelper, RecipeType<ForgeItem> recipeType, ItemLike icon) {
         return new ForgeItemRecipeCategory(guiHelper, recipeType, new ItemStack(icon));
     }
 }
