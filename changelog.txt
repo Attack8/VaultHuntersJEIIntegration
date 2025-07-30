@@ -51,3 +51,7 @@ Just Enough VH v1.1
  - Added Optional Material Box Recipe Category
  - Fixed bug where item roles were incorrect for all categories
  - Backend code improvements
+
+ Just Enough VH v1.2
+  - Fix issues with loading when VA not installed
+  - Fix issues with some categories not being removed all the way
