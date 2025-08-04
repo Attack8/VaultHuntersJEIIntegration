@@ -5,7 +5,6 @@ import dev.attackeight.just_enough_vh.jei.category.*;
 import static dev.attackeight.just_enough_vh.jei.JEIRecipeProvider.*;
 
 import dev.attackeight.just_enough_vh.JustEnoughVH.ModConfig;
-import iskallia.vault.core.vault.Vault;
 import iskallia.vault.init.ModBlocks;
 import iskallia.vault.init.ModConfigs;
 import iskallia.vault.init.ModItems;
@@ -51,6 +50,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
     public static final RecipeType<LabeledLootInfo> VA_VAULT_STATUE = RecipeType.create("vaultadditions", "vault_statue", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> ALTAR_INGREDIENTS = RecipeType.create(JustEnoughVH.ID, "altar_ingredients", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> MATERIAL_BOX = RecipeType.create(JustEnoughVH.ID, "material_box", LabeledLootInfo.class);
+    public static final RecipeType<RecyclerRecipe> VAULT_RECYCLER = RecipeType.create(JustEnoughVH.ID, "vault_recycler", RecyclerRecipe.class);
 
     public TheVaultJEIPlugin() {}
 
@@ -70,6 +70,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.BOUNTY_BLOCK), BOUNTY_REWARDS);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.SHOP_PEDESTAL), SHOP_PEDESTAL);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.VAULT_ALTAR), ALTAR_INGREDIENTS);
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.VAULT_RECYCLER), VAULT_RECYCLER);
 
         if (ModConfig.shouldShow()) {
             registration.addRecipeCatalyst(new ItemStack(ModItems.PANDORAS_BOX), PANDORAS_BOX);
@@ -101,6 +102,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, BOUNTY_REWARDS, ModBlocks.BOUNTY_BLOCK));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, SHOP_PEDESTAL, ModBlocks.SHOP_PEDESTAL));
         registration.addRecipeCategories(makeLabeledIngredientPoolCategory(guiHelper, ALTAR_INGREDIENTS, ModBlocks.VAULT_ALTAR));
+        registration.addRecipeCategories(makeRecyclerCategory(guiHelper, VAULT_RECYCLER, ModBlocks.VAULT_RECYCLER));
 
         if (ModConfig.shouldShow()) {
             registration.addRecipeCategories(makeLootInfoCategory(guiHelper, PANDORAS_BOX, ModItems.PANDORAS_BOX));
@@ -127,6 +129,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipes(BOUNTY_REWARDS, getBountyRewards());
         registration.addRecipes(SHOP_PEDESTAL, getShopPedestalLoot());
         registration.addRecipes(ALTAR_INGREDIENTS, getAltarIngredients());
+        registration.addRecipes(VAULT_RECYCLER, getRecyclerRecipes());
 
         if (ModConfig.shouldShow()) {
             registration.addRecipes(PANDORAS_BOX, getFromPool(ModConfigs.PANDORAS_BOX.POOL));
@@ -153,6 +156,10 @@ public class TheVaultJEIPlugin implements IModPlugin {
 
     public static LabeledLootInfoRecipeCategory makeLabeledIngredientPoolCategory(IGuiHelper guiHelper, RecipeType<LabeledLootInfo> recipeType, ItemLike icon) {
         return new LabeledLootInfoRecipeCategory(guiHelper, recipeType, new ItemStack(icon), INPUT);
+    }
+
+    public static VaultRecyclerRecipeCategory makeRecyclerCategory(IGuiHelper guiHelper, RecipeType<RecyclerRecipe> recipeType, ItemLike icon) {
+        return new VaultRecyclerRecipeCategory(guiHelper, recipeType);
     }
 
     public static ForgeItemRecipeCategory makeForgeItemCategory(IGuiHelper guiHelper, RecipeType<ForgeItem> recipeType, ItemLike icon) {

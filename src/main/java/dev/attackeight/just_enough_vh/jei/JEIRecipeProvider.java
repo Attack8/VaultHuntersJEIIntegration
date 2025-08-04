@@ -1,19 +1,25 @@
 package dev.attackeight.just_enough_vh.jei;
 
+import com.mojang.logging.LogUtils;
 import dev.attackeight.just_enough_vh.JustEnoughVH;
-import dev.attackeight.just_enough_vh.mixin.*;
 import io.github.a1qs.vaultadditions.config.vault.AbstractStatueLootConfig;
 import iskallia.vault.config.OmegaSoulShardConfig;
-import iskallia.vault.config.ShopPedestalConfig;
 import iskallia.vault.config.SoulShardConfig;
+import iskallia.vault.config.VaultRecyclerConfig;
+import iskallia.vault.config.entry.ChanceItemStackEntry;
+import iskallia.vault.config.entry.ConditionalChanceItemStackEntry;
 import iskallia.vault.config.entry.IntRangeEntry;
-import iskallia.vault.config.entry.LevelEntryList;
 import iskallia.vault.config.entry.recipe.ConfigForgeRecipe;
 import iskallia.vault.config.entry.vending.ProductEntry;
 import iskallia.vault.config.recipe.ForgeRecipesConfig;
+import iskallia.vault.gear.VaultGearRarity;
 import iskallia.vault.gear.crafting.recipe.*;
+import iskallia.vault.gear.data.VaultGearData;
 import iskallia.vault.init.ModConfigs;
+import iskallia.vault.init.ModGearAttributes;
+import iskallia.vault.init.ModItems;
 import iskallia.vault.integration.jei.lootinfo.LootInfo;
+import iskallia.vault.tags.ModItemTags;
 import iskallia.vault.util.data.WeightedList;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
@@ -22,16 +28,18 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.ImmutableTriple;
+import net.minecraftforge.registries.tags.ITag;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class JEIRecipeProvider {
 
@@ -49,11 +57,10 @@ public class JEIRecipeProvider {
     }
 
     protected static ItemStack addWeight(WeightedList.Entry<ProductEntry> productEntry, int totalWeight) {
-        ProductEntryAccessor entry = (ProductEntryAccessor) productEntry.value;
         if (!ForgeRegistries.ITEMS.containsKey(productEntry.value.getItem().getRegistryName()))
             return ItemStack.EMPTY;
-        return formatItemStack(productEntry.value.getItem(), entry.getAmountMin(),
-                entry.getAmountMax(), productEntry.weight, totalWeight);
+        return formatItemStack(productEntry.value.getItem(), productEntry.value.amountMin,
+                productEntry.value.amountMax, productEntry.weight, totalWeight);
     }
 
     @SuppressWarnings("unchecked")
@@ -78,7 +85,7 @@ public class JEIRecipeProvider {
                 if (!JustEnoughVH.SHOP_PEDESTAL_ITEMS.containsKey(currentOffer.getItem().getRegistryName()))
                     JustEnoughVH.SHOP_PEDESTAL_ITEMS.put(currentOffer.getItem().getRegistryName(), minLevel);
                 offers.add(formatItemStack(currentOffer.getItem(), offerInfo.getMiddle().getMin(),
-                        offerInfo.getMiddle().getMax(), offerInfo.getRight().intValue(), totalWeight.get(), true));
+                        offerInfo.getMiddle().getMax(), offerInfo.getRight().intValue(), totalWeight.get(), currentOffer.getCount()));
             });
             lootInfo.add(LabeledLootInfo.of(offers, new TextComponent("Level " + minLevel + "+ "), null));
         });
@@ -99,7 +106,7 @@ public class JEIRecipeProvider {
                 if (!JustEnoughVH.BLACK_MARKET_ITEMS.containsKey(currentTrade.getItem().getRegistryName()))
                     JustEnoughVH.BLACK_MARKET_ITEMS.put(currentTrade.getItem().getRegistryName(), minLevel);
                 shardTrades.add(formatItemStack(currentTrade.getItem(), c.value.getMinPrice(),
-                        c.value.getMaxPrice(), c.weight, totalWeight.get(), true));
+                        c.value.getMaxPrice(), c.weight, totalWeight.get(), c.value.getItemEntry().AMOUNT));
             });
             lootInfo.add(LabeledLootInfo.of(shardTrades, new TextComponent("Common Slot: Level " + minLevel + "+ "), new TextComponent("Soul Trade Price: " + randomPrice)));
         });
@@ -114,7 +121,7 @@ public class JEIRecipeProvider {
                 if (!JustEnoughVH.OMEGA_BLACK_MARKET_ITEMS.containsKey(currentTrade.getItem().getRegistryName()))
                     JustEnoughVH.OMEGA_BLACK_MARKET_ITEMS.put(currentTrade.getItem().getRegistryName(), minLevel);
                 shardTrades.add(formatItemStack(currentTrade.getItem(), c.value.getMinPrice(),
-                        c.value.getMaxPrice(), c.weight, totalWeight.get(), true));
+                        c.value.getMaxPrice(), c.weight, totalWeight.get(), c.value.getItemEntry().AMOUNT));
             });
             lootInfo.add(LabeledLootInfo.of(shardTrades, new TextComponent("Omega Slot: Level " + minLevel + "+ "), null));
         });
@@ -127,11 +134,8 @@ public class JEIRecipeProvider {
             AtomicInteger totalWeight = new AtomicInteger();
             List<ItemStack> results = new ArrayList<>();
             k.forEach(d -> totalWeight.addAndGet(d.weight));
-            k.forEach(c -> {
-                ProductEntryAccessor accessor = (ProductEntryAccessor) c.value;
-                results.add(formatItemStack(c.value.getItem(), accessor.getAmountMin(),
-                        accessor.getAmountMax(), c.weight, totalWeight.get()));
-            });
+            k.forEach(c -> results.add(formatItemStack(c.value.getItem(), c.value.amountMin,
+                        c.value.amountMin, c.weight, totalWeight.get())));
             lootInfo.add(LabeledLootInfo.of(results, new TextComponent("Mod: " + mod), null));
         });
         return lootInfo;
@@ -139,20 +143,21 @@ public class JEIRecipeProvider {
 
     protected static List<LabeledLootInfo> getBountyRewards() {
         List<LabeledLootInfo> toReturn = new ArrayList<>();
-        RewardPoolAccessor rewardPools = (RewardPoolAccessor) ModConfigs.REWARD_CONFIG;
-        rewardPools.getPOOLS().forEach((id, entry) -> {
+        ModConfigs.REWARD_CONFIG.POOLS.forEach((id, entry) -> {
             TreeMap<Integer, LabeledLootInfo> lootInfo = new TreeMap<>();
             if (!id.equals("submission")) {
+                LogUtils.getLogger().info("Generating bounty rewards for: {}", id);
                 entry.forEach((minLevel, rewards) -> {
+                    LogUtils.getLogger().info("Generating bounty rewards for: {}, Level {}", id, minLevel);
                     AtomicInteger totalWeight = new AtomicInteger();
                     List<ItemStack> results = new ArrayList<>();
-                    RewardEntryAccessor rewardEntry = (RewardEntryAccessor) rewards;
-                    IntRangeEntry vaultExp = rewardEntry.getVaultExp();
+                    IntRangeEntry vaultExp = rewards.vaultExp;
                     rewards.getItemPool().getPool().forEach(stack -> totalWeight.addAndGet(stack.weight));
-                    rewards.getItemPool().getPool().forEach(stack ->
+                    rewards.getItemPool().getPool().forEach(stack -> {
+                        LogUtils.getLogger().info("Entry: {}", stack.value.getMatchingStack().getItem().getRegistryName());
                         results.add(formatItemStack(stack.value.getMatchingStack().getItem(), stack.value.getMinCount(),
-                                stack.value.getMaxCount(), stack.weight, totalWeight.get()))
-                    );
+                                stack.value.getMaxCount(), stack.weight, totalWeight.get()));
+                    });
                     lootInfo.put(minLevel, LabeledLootInfo.of(results,
                             new TextComponent("Reward Pool: " + id + " Level: " + minLevel + "+"),
                             new TextComponent("Vault Exp Reward: " + vaultExp.getMin() + "-" + vaultExp.getMax())));
@@ -165,16 +170,15 @@ public class JEIRecipeProvider {
 
     protected static List<LabeledLootInfo> getAltarIngredients() {
         List<LabeledLootInfo> toReturn = new ArrayList<>();
-        AltarIngredientAccessor rewardPools = (AltarIngredientAccessor) ModConfigs.VAULT_ALTAR_INGREDIENTS;
         TreeMap<Integer, List<LabeledLootInfo>> lootInfo = new TreeMap<>();
-        rewardPools.getLEVELS().forEach((minLevel, entry) -> {
+        ModConfigs.VAULT_ALTAR_INGREDIENTS.getLEVELS().forEach((minLevel, entry) -> {
             List<LabeledLootInfo> pool = new ArrayList<>();
             entry.forEach((slot, rewards) -> {
                 AtomicInteger totalWeight = new AtomicInteger();
                 List<List<ItemStack>> results = new ArrayList<>();
                 rewards.forEach(stack -> totalWeight.addAndGet(stack.weight));
                 rewards.forEach(stack -> {
-                    IntRangeEntry amounts = ((IngredientAmountAccessor) stack.value).getAmount();
+                    IntRangeEntry amounts = stack.value.amount;
                     List<ItemStack> stacks = new ArrayList<>();
                     for (ItemStack stackInGroup : stack.value.getItems()) {
                         stacks.add(formatItemStack(stackInGroup.getItem(), amounts.getMin(),
@@ -182,8 +186,7 @@ public class JEIRecipeProvider {
                     }
                     results.add(stacks);
                 });
-                pool.add(new LabeledLootInfo(results,
-                        new TextComponent("Reward Pool: " + slot + " Level: " + minLevel + "+")));
+                pool.add(new LabeledLootInfo(results, new TextComponent("Reward Pool: " + slot + " Level: " + minLevel + "+")));
             });
             lootInfo.put(minLevel, pool);
         });
@@ -202,17 +205,127 @@ public class JEIRecipeProvider {
             levelEntry.pool.forEach((group, weight) -> {
                 List<ItemStack> stacks = new ArrayList<>();
                 for (ProductEntry stackInGroup : group.entries) {
-                    ProductEntryAccessor accessor = (ProductEntryAccessor) stackInGroup;
-                    stacks.add(formatItemStack(stackInGroup.getItem(), accessor.getAmountMin(),
-                            accessor.getAmountMax(), weight.intValue(), totalWeight.get()));
+                    stacks.add(formatItemStack(stackInGroup.getItem(), stackInGroup.amountMin,
+                            stackInGroup.amountMax, weight.intValue(), totalWeight.get()));
                 }
                 results.add(stacks);
-                pool.add(new LabeledLootInfo(results,
-                        new TextComponent(" Level: " + levelEntry.level + "+")));
+                pool.add(new LabeledLootInfo(results, new TextComponent(" Level: " + levelEntry.level + "+")));
             });
             lootInfo.put(levelEntry.getLevel(), pool);
         });
         lootInfo.forEach((i, n) -> toReturn.addAll(n));
+        return toReturn;
+    }
+
+    protected static List<RecyclerRecipe> getRecyclerRecipes() {
+        List<RecyclerRecipe> toReturn = new ArrayList<>();
+        VaultRecyclerConfig.RecyclerOutput gearOutput = ModConfigs.VAULT_RECYCLER.getGearRecyclingOutput();
+        for (VaultGearRarity rarity : VaultGearRarity.values()) {
+            if (rarity.equals(VaultGearRarity.UNIQUE) || rarity.equals(VaultGearRarity.SPECIAL)) continue;
+            List<ItemStack> pieceStack = generatePieceStack(rarity);
+            List<ItemStack> outputs = List.of(
+                    addLoreToRecyclerOutput(gearOutput.getMainOutput(), rarity),
+                    addLoreToRecyclerOutput(gearOutput.getExtraOutput1(), rarity),
+                    addLoreToRecyclerOutput(gearOutput.getExtraOutput2(), rarity)
+            );
+            toReturn.add(new RecyclerRecipe(pieceStack, outputs));
+        }
+
+        VaultRecyclerConfig.RecyclerOutput trinketOutput = ModConfigs.VAULT_RECYCLER.getTrinketRecyclingOutput();
+        toReturn.add(RecyclerRecipe.of(new ItemStack(ModItems.TRINKET), List.of(
+                addLoreToRecyclerOutput(trinketOutput.getMainOutput()),
+                addLoreToRecyclerOutput(trinketOutput.getExtraOutput1()),
+                addLoreToRecyclerOutput(trinketOutput.getExtraOutput2())
+        )));
+
+        VaultRecyclerConfig.RecyclerOutput jewelOutput = ModConfigs.VAULT_RECYCLER.getJewelRecyclingOutput();
+        toReturn.add(RecyclerRecipe.of(new ItemStack(ModItems.JEWEL), List.of(
+                addLoreToRecyclerOutput(jewelOutput.getMainOutput()),
+                addLoreToRecyclerOutput(jewelOutput.getExtraOutput1()),
+                addLoreToRecyclerOutput(jewelOutput.getExtraOutput2())
+        )));
+
+        VaultRecyclerConfig.RecyclerOutput inscriptionOutput = ModConfigs.VAULT_RECYCLER.getInscriptionRecyclingOutput();
+        toReturn.add(RecyclerRecipe.of(new ItemStack(ModItems.INSCRIPTION), List.of(
+                addLoreToRecyclerOutput(inscriptionOutput.getMainOutput()),
+                addLoreToRecyclerOutput(inscriptionOutput.getExtraOutput1()),
+                addLoreToRecyclerOutput(inscriptionOutput.getExtraOutput2())
+        )));
+
+        VaultRecyclerConfig.RecyclerOutput charmOutput = ModConfigs.VAULT_RECYCLER.getCharmRecyclingOutput();
+        toReturn.add(RecyclerRecipe.of(new ItemStack(ModItems.VAULT_GOD_CHARM), List.of(
+                addLoreToRecyclerOutput(charmOutput.getMainOutput()),
+                addLoreToRecyclerOutput(charmOutput.getExtraOutput1()),
+                addLoreToRecyclerOutput(charmOutput.getExtraOutput2())
+        )));
+
+        VaultRecyclerConfig.RecyclerOutput voidStoneOutput = ModConfigs.VAULT_RECYCLER.getVoidStoneRecyclingOutput();
+        toReturn.add(RecyclerRecipe.of(new ItemStack(ModItems.VOID_STONE), List.of(
+                addLoreToRecyclerOutput(voidStoneOutput.getMainOutput()),
+                addLoreToRecyclerOutput(voidStoneOutput.getExtraOutput1()),
+                addLoreToRecyclerOutput(voidStoneOutput.getExtraOutput2())
+        )));
+
+        return toReturn;
+    }
+
+    private static ItemStack addLoreToRecyclerOutput(ChanceItemStackEntry entry) {
+        return addLoreToRecyclerOutput(entry, null);
+    }
+
+    private static ItemStack addLoreToRecyclerOutput(ChanceItemStackEntry entry, @Nullable VaultGearRarity rarity) {
+        AtomicReference<ItemStack> toReturn = new AtomicReference<>(entry.getMatchingStack());
+
+        AtomicReference<Float> chance = new AtomicReference<>(entry.getChance());
+
+        if (rarity != null && chance.get() < 1f) {
+            chance.updateAndGet(v -> v + ModConfigs.VAULT_RECYCLER.getAdditionalOutputRarityChance(rarity));
+        }
+
+        if (entry instanceof ConditionalChanceItemStackEntry ccise) {
+            ccise.getConditionalOutputs().forEach(((condition, chanceItemStackEntry) -> {
+                if (condition.matches(rarity, false) || condition.matches(rarity, true)) {
+                    toReturn.set(chanceItemStackEntry.getMatchingStack());
+                    chance.set(chanceItemStackEntry.getChance());
+                }
+            }));
+        }
+
+        CompoundTag nbt = toReturn.get().getOrCreateTagElement("display");
+        ListTag list = nbt.getList("Lore", 8);
+        MutableComponent chanceLabel = new TextComponent("Chance: ");
+
+        chanceLabel.append(String.format("%.0f", chance.get() * 100));
+        chanceLabel.append("%");
+        list.add(StringTag.valueOf(Component.Serializer.toJson(chanceLabel.withStyle(ChatFormatting.YELLOW))));
+
+        if (entry.getMinCount() != entry.getMaxCount()) {
+            MutableComponent countLabel = new TextComponent("Count: ");
+            countLabel.append(entry.getMinCount() + " - " + entry.getMaxCount());
+            list.add(StringTag.valueOf(Component.Serializer.toJson(countLabel)));
+        }
+        nbt.put("Lore", list);
+        return chance.get() == 0f ? ItemStack.EMPTY : toReturn.get();
+    }
+
+    private static List<ItemStack> generatePieceStack(VaultGearRarity rarity) {
+        List<ItemStack> toReturn = new ArrayList<>();
+        ITag<Item> vaultGear = ForgeRegistries.ITEMS.tags().getTag(ModItemTags.VAULT_GEAR);
+        for (Item gear : vaultGear) {
+            ItemStack itemStack = new ItemStack(gear);
+
+            String rollType = rarity.toString().toLowerCase();
+
+            char firstLetter = Character.toTitleCase(rollType.substring(0, 1).charAt(0));
+            String restLetters = rollType.substring(1);
+            rollType = firstLetter + restLetters;
+
+            VaultGearData data = VaultGearData.read(itemStack);
+            data.createOrReplaceAttributeValue(ModGearAttributes.GEAR_ROLL_TYPE, rollType);
+            data.write(itemStack);
+
+            toReturn.add(itemStack);
+        }
         return toReturn;
     }
 
@@ -223,11 +336,8 @@ public class JEIRecipeProvider {
         int minCount = lootConfig.getRollRange().getMin();
         int maxCount = lootConfig.getRollRange().getMax();
         int totalWeight = lootConfig.getDrops().getTotalWeight();
-        lootConfig.getDrops().forEach((product, weight) -> {
-            ProductEntryAccessor accessor = (ProductEntryAccessor) product;
-            items.add(formatItemStack(product.getItem(), accessor.getAmountMin(),
-                    accessor.getAmountMax(), weight.intValue(), totalWeight));
-        });
+        lootConfig.getDrops().forEach((product, weight) ->
+            items.add(formatItemStack(product.getItem(), product.amountMin, product.amountMax, weight.intValue(), totalWeight)));
         toReturn.add(LabeledLootInfo.of(items,
                 new TextComponent("Interval: " + interval),
                 new TextComponent("Count: " + minCount + " - " + maxCount)
@@ -235,8 +345,8 @@ public class JEIRecipeProvider {
         return toReturn;
     }
 
-    private static ItemStack formatItemStack(ItemLike item, int amountMin, int amountMax, int weight, int totalWeight, boolean cost) {
-        ItemStack result = new ItemStack(item, amountMax);
+    private static ItemStack formatItemStack(ItemLike item, int amountMin, int amountMax, int weight, int totalWeight, @Nullable Integer amount) {
+        ItemStack result = new ItemStack(item, amount == null ? amountMax : amount);
         double chance = ((double) weight / totalWeight) * 100;
         CompoundTag nbt = result.getOrCreateTagElement("display");
         ListTag list = nbt.getList("Lore", 8);
@@ -245,7 +355,7 @@ public class JEIRecipeProvider {
         chanceLabel.append("%");
         list.add(StringTag.valueOf(Component.Serializer.toJson(chanceLabel.withStyle(ChatFormatting.YELLOW))));
         if (amountMin != amountMax) {
-            MutableComponent countLabel = new TextComponent(cost ? "Cost: " : "Count: ");
+            MutableComponent countLabel = new TextComponent(amount == null ? "Count: " : "Cost: ");
             countLabel.append(amountMin + " - " + amountMax);
             list.add(StringTag.valueOf(Component.Serializer.toJson(countLabel)));
         }
@@ -254,6 +364,6 @@ public class JEIRecipeProvider {
     }
 
     private static ItemStack formatItemStack(ItemLike item, int amountMin, int amountMax, int weight, int totalWeight) {
-        return formatItemStack(item, amountMin, amountMax, weight, totalWeight, false);
+        return formatItemStack(item, amountMin, amountMax, weight, totalWeight, null);
     }
 }

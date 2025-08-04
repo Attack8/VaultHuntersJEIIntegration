@@ -2,16 +2,10 @@
   "required": true,
   "minVersion": "0.8",
   "package": "dev.attackeight.just_enough_vh.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_17",
   "refmap": "TheVaultJEI.refmap.json",
   "mixins": [
-    "AltarIngredientAccessor",
-    "ClientEventsMixin",
-    "IngredientAmountAccessor",
     "IntegrationJEIMixin",
-    "ProductEntryAccessor",
-    "RewardEntryAccessor",
-    "RewardPoolAccessor",
     "ShopPedestalConfigMixin"
   ],
   "client": [],
