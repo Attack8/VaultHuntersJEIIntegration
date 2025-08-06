@@ -36,7 +36,7 @@ public class VaultRecyclerRecipeCategory implements IRecipeCategory<RecyclerReci
     public VaultRecyclerRecipeCategory(IGuiHelper guiHelper, RecipeType<RecyclerRecipe> recipeType) {
         this.background = guiHelper.createDrawable(TEXTURE, 33, 30, 104, 26);
         this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(ModBlocks.VAULT_RECYCLER));
-        this.cachedArrows = CacheBuilder.newBuilder().maximumSize(25L).build(new CacheLoader<Integer, IDrawableAnimated>() {
+        this.cachedArrows = CacheBuilder.newBuilder().maximumSize(25L).build(new CacheLoader<>() {
             @Nonnull
             public IDrawableAnimated load(@Nonnull Integer time) {
                 return guiHelper.drawableBuilder(TEXTURE, 176, 0, 24, 17).buildAnimated(time, IDrawableAnimated.StartDirection.LEFT, false);

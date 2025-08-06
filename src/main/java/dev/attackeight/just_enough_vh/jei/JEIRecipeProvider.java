@@ -1,6 +1,5 @@
 package dev.attackeight.just_enough_vh.jei;
 
-import com.mojang.logging.LogUtils;
 import dev.attackeight.just_enough_vh.JustEnoughVH;
 import io.github.a1qs.vaultadditions.config.vault.AbstractStatueLootConfig;
 import iskallia.vault.config.OmegaSoulShardConfig;
@@ -14,7 +13,7 @@ import iskallia.vault.config.entry.vending.ProductEntry;
 import iskallia.vault.config.recipe.ForgeRecipesConfig;
 import iskallia.vault.gear.VaultGearRarity;
 import iskallia.vault.gear.crafting.recipe.*;
-import iskallia.vault.gear.data.VaultGearData;
+import iskallia.vault.gear.data.AttributeGearData;
 import iskallia.vault.init.ModConfigs;
 import iskallia.vault.init.ModGearAttributes;
 import iskallia.vault.init.ModItems;
@@ -146,18 +145,14 @@ public class JEIRecipeProvider {
         ModConfigs.REWARD_CONFIG.POOLS.forEach((id, entry) -> {
             TreeMap<Integer, LabeledLootInfo> lootInfo = new TreeMap<>();
             if (!id.equals("submission")) {
-                LogUtils.getLogger().info("Generating bounty rewards for: {}", id);
                 entry.forEach((minLevel, rewards) -> {
-                    LogUtils.getLogger().info("Generating bounty rewards for: {}, Level {}", id, minLevel);
                     AtomicInteger totalWeight = new AtomicInteger();
                     List<ItemStack> results = new ArrayList<>();
                     IntRangeEntry vaultExp = rewards.vaultExp;
                     rewards.getItemPool().getPool().forEach(stack -> totalWeight.addAndGet(stack.weight));
-                    rewards.getItemPool().getPool().forEach(stack -> {
-                        LogUtils.getLogger().info("Entry: {}", stack.value.getMatchingStack().getItem().getRegistryName());
+                    rewards.getItemPool().getPool().forEach(stack ->
                         results.add(formatItemStack(stack.value.getMatchingStack().getItem(), stack.value.getMinCount(),
-                                stack.value.getMaxCount(), stack.weight, totalWeight.get()));
-                    });
+                                stack.value.getMaxCount(), stack.weight, totalWeight.get())));
                     lootInfo.put(minLevel, LabeledLootInfo.of(results,
                             new TextComponent("Reward Pool: " + id + " Level: " + minLevel + "+"),
                             new TextComponent("Vault Exp Reward: " + vaultExp.getMin() + "-" + vaultExp.getMax())));
@@ -310,7 +305,7 @@ public class JEIRecipeProvider {
 
     private static List<ItemStack> generatePieceStack(VaultGearRarity rarity) {
         List<ItemStack> toReturn = new ArrayList<>();
-        ITag<Item> vaultGear = ForgeRegistries.ITEMS.tags().getTag(ModItemTags.VAULT_GEAR);
+        ITag<Item> vaultGear = Objects.requireNonNull(ForgeRegistries.ITEMS.tags()).getTag(ModItemTags.VAULT_GEAR);
         for (Item gear : vaultGear) {
             ItemStack itemStack = new ItemStack(gear);
 
@@ -320,7 +315,7 @@ public class JEIRecipeProvider {
             String restLetters = rollType.substring(1);
             rollType = firstLetter + restLetters;
 
-            VaultGearData data = VaultGearData.read(itemStack);
+            AttributeGearData data = AttributeGearData.read(itemStack);
             data.createOrReplaceAttributeValue(ModGearAttributes.GEAR_ROLL_TYPE, rollType);
             data.write(itemStack);
 

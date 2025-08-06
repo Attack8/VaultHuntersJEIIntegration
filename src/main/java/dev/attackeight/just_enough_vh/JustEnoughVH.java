@@ -46,7 +46,7 @@ public class JustEnoughVH {
         }
 
         static {
-            SHOW = BUILDER.comment("Should JEI show loot tables for items not used in the base modpack")
+            SHOW = BUILDER.comment("Should JEI show loot tables for items not used in the base mod pack")
                     .define("enable_hidden", false);
             SPEC = BUILDER.build();
         }
