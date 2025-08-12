@@ -3,6 +3,7 @@ package dev.attackeight.just_enough_vh.jei.category;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.attackeight.just_enough_vh.jei.LabeledLootInfo;
 import iskallia.vault.VaultMod;
+import iskallia.vault.util.LootInitialization;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -78,7 +79,25 @@ public class LabeledLootInfoRecipeCategory implements IRecipeCategory<LabeledLoo
         int count = itemList.size();
 
         for (int i = 0; i < count; ++i) {
-            builder.addSlot(role, 1 + 18 * (i % 9), 1 + 18 * (i / 9)).addIngredients(Ingredient.of(itemList.get(i).stream()));
+            if (itemList.get(i).size() == 1) {
+                ItemStack base = itemList.get(i).get(0);
+                ItemStack initialized = LootInitialization.initializeVaultLoot(base, 0);
+
+                if (initialized.equals(base)) { // didn't change - no random data
+                    builder.addSlot(role, 1 + 18 * (i % 9), 1 + 18 * (i / 9)).addIngredients(Ingredient.of(initialized));
+                } else {
+                    ItemStack[] variants = new ItemStack[10]; // changed - randomly generate 10 variants to loop through
+                    variants[0] = initialized;
+                    for (int n = 1; n < variants.length; n++) {
+                        variants[n] = LootInitialization.initializeVaultLoot(base, 0);
+                    }
+                    builder.addSlot(role, 1 + 18 * (i % 9), 1 + 18 * (i / 9)).addIngredients(Ingredient.of(variants));
+                }
+            } else {
+                // list of items (eg. altar ingredient accepting all logs) - don't try to gen random list of items
+                builder.addSlot(role, 1 + 18 * (i % 9), 1 + 18 * (i / 9)).addIngredients(Ingredient.of(itemList.get(i).stream()
+                    .map( is -> LootInitialization.initializeVaultLoot(is, 0))));
+            }
         }
     }
 
