@@ -50,6 +50,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
     public static final RecipeType<LabeledLootInfo> SHOP_PEDESTAL = RecipeType.create(JustEnoughVH.ID, "shop_pedestal", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> ALTAR_INGREDIENTS = RecipeType.create(JustEnoughVH.ID, "altar_ingredients", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> BRAZIER_PILLAGE = RecipeType.create(JustEnoughVH.ID, "brazier_pillage", LabeledLootInfo.class);
+    public static final RecipeType<LabeledLootInfo> CHALLENGE_ACTION_LOOT = RecipeType.create(JustEnoughVH.ID, "challenge_action_loot", LabeledLootInfo.class);
 
     // Optional
     public static final RecipeType<LabeledLootInfo> MATERIAL_BOX = RecipeType.create(JustEnoughVH.ID, "material_box", LabeledLootInfo.class);
@@ -79,6 +80,9 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.SHOP_PEDESTAL), SHOP_PEDESTAL);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.VAULT_ALTAR), ALTAR_INGREDIENTS);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.VAULT_RECYCLER), VAULT_RECYCLER);
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.RAID_CONTROLLER), CHALLENGE_ACTION_LOOT);
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.ELITE_CONTROLLER), CHALLENGE_ACTION_LOOT);
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.X_MARK_CONTROLLER), CHALLENGE_ACTION_LOOT);
 
         LootInfoGroupDefinitionRegistry.get().forEach((location, groupDefinition) ->
                 registration.addRecipeCatalyst(groupDefinition.itemStack(), adapt(groupDefinition.recipeType())));
@@ -111,6 +115,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, SHOP_PEDESTAL, ModBlocks.SHOP_PEDESTAL));
         registration.addRecipeCategories(makeLabeledIngredientPoolCategory(guiHelper, ALTAR_INGREDIENTS, ModBlocks.VAULT_ALTAR));
         registration.addRecipeCategories(makeRecyclerCategory(guiHelper, VAULT_RECYCLER, ModBlocks.VAULT_RECYCLER));
+        registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, CHALLENGE_ACTION_LOOT, ModBlocks.RAID_CONTROLLER));
 
         LootInfoGroupDefinitionRegistry.get().forEach((location, groupDefinition) ->
                 registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper,
@@ -142,6 +147,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipes(SHOP_PEDESTAL, getShopPedestalLoot());
         registration.addRecipes(ALTAR_INGREDIENTS, getAltarIngredients());
         registration.addRecipes(VAULT_RECYCLER, getRecyclerRecipes());
+        registration.addRecipes(CHALLENGE_ACTION_LOOT, getChallengeActionLoot());
 
         LootInfoGroupDefinitionRegistry.get().forEach((location, groupDefinition) ->
             registration.addRecipes(adapt(groupDefinition.recipeType()), labelDefaultLootInfo(location)));
