@@ -59,3 +59,7 @@ Just Enough VH v1.1
  Just Enough VH v1.3
   - Update to Vault Hunters 3.19.5
   - Overwrite default Vault Recycler recipes with improved system
+
+ Just Enough VH v1.4
+  - Add JEI Integration for various 'controller' blocks (thanks @radimous)
+  - Rework Loot Info categories to be separated per level
