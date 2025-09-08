@@ -19,6 +19,7 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
@@ -51,6 +52,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
     public static final RecipeType<LabeledLootInfo> ALTAR_INGREDIENTS = RecipeType.create(JustEnoughVH.ID, "altar_ingredients", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> BRAZIER_PILLAGE = RecipeType.create(JustEnoughVH.ID, "brazier_pillage", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> CHALLENGE_ACTION_LOOT = RecipeType.create(JustEnoughVH.ID, "challenge_action_loot", LabeledLootInfo.class);
+    public static final RecipeType<LabeledLootInfo> CHAMPION_LOOT = RecipeType.create(JustEnoughVH.ID, "champion_loot", LabeledLootInfo.class);
 
     // Optional
     public static final RecipeType<LabeledLootInfo> MATERIAL_BOX = RecipeType.create(JustEnoughVH.ID, "material_box", LabeledLootInfo.class);
@@ -116,6 +118,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCategories(makeLabeledIngredientPoolCategory(guiHelper, ALTAR_INGREDIENTS, ModBlocks.VAULT_ALTAR));
         registration.addRecipeCategories(makeRecyclerCategory(guiHelper, VAULT_RECYCLER, ModBlocks.VAULT_RECYCLER));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, CHALLENGE_ACTION_LOOT, ModBlocks.RAID_CONTROLLER));
+        registration.addRecipeCategories(new LabeledLootInfoRecipeCategory(guiHelper, CHAMPION_LOOT, new ItemStack(ModItems.SCAVENGER_TREASURE_GOBLET), new TextComponent("Champion Loot"), OUTPUT));
 
         LootInfoGroupDefinitionRegistry.get().forEach((location, groupDefinition) ->
                 registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper,
@@ -148,6 +151,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipes(ALTAR_INGREDIENTS, getAltarIngredients());
         registration.addRecipes(VAULT_RECYCLER, getRecyclerRecipes());
         registration.addRecipes(CHALLENGE_ACTION_LOOT, getChallengeActionLoot());
+        registration.addRecipes(CHAMPION_LOOT, getChampionLoot());
 
         LootInfoGroupDefinitionRegistry.get().forEach((location, groupDefinition) ->
             registration.addRecipes(adapt(groupDefinition.recipeType()), labelDefaultLootInfo(location)));

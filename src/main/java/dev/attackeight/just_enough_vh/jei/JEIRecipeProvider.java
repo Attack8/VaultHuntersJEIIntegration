@@ -1,14 +1,13 @@
 package dev.attackeight.just_enough_vh.jei;
 
 import dev.attackeight.just_enough_vh.JustEnoughVH;
+import dev.attackeight.just_enough_vh.mixin.AccessorLegacyLootTablesConfig;
+import dev.attackeight.just_enough_vh.mixin.AccessorLootInfoConfigLootInfo;
 import dev.attackeight.just_enough_vh.mixin.raid.*;
 import io.github.a1qs.vaultadditions.config.vault.AbstractStatueLootConfig;
-import iskallia.vault.config.LootInfoConfig;
 import iskallia.vault.block.PlaceholderBlock;
 import iskallia.vault.block.entity.challenge.raid.action.*;
-import iskallia.vault.config.OmegaSoulShardConfig;
-import iskallia.vault.config.SoulShardConfig;
-import iskallia.vault.config.VaultRecyclerConfig;
+import iskallia.vault.config.*;
 import iskallia.vault.config.entry.ChanceItemStackEntry;
 import iskallia.vault.config.entry.ConditionalChanceItemStackEntry;
 import iskallia.vault.config.entry.IntRangeEntry;
@@ -16,7 +15,11 @@ import iskallia.vault.config.entry.LevelEntryList;
 import iskallia.vault.config.entry.recipe.ConfigForgeRecipe;
 import iskallia.vault.config.entry.vending.ProductEntry;
 import iskallia.vault.config.recipe.ForgeRecipesConfig;
-import iskallia.vault.core.world.loot.LootTableInfo;
+import iskallia.vault.core.Version;
+import iskallia.vault.core.vault.VaultRegistry;
+import iskallia.vault.core.world.loot.LootPool;
+import iskallia.vault.core.world.loot.LootTable;
+import iskallia.vault.core.world.loot.entry.ItemLootEntry;
 import iskallia.vault.gear.VaultGearRarity;
 import iskallia.vault.gear.crafting.recipe.VaultForgeRecipe;
 import iskallia.vault.gear.data.AttributeGearData;
@@ -33,12 +36,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.*;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -81,40 +81,17 @@ public class JEIRecipeProvider {
     public static List<LabeledLootInfo> labelDefaultLootInfo(ResourceLocation location) {
         List<LabeledLootInfo> toReturn = new ArrayList<>();
         Set<ResourceLocation> lootTableKeys = getLootTableKeysForLootInfoGroup(location);
+        var infoConfigLootInfo = (AccessorLootInfoConfigLootInfo)ModConfigs.LOOT_INFO_CONFIG.getLootInfoMap().get(location);
         lootTableKeys.forEach(lootTable -> {
             List<ItemStack> itemStacks = new ArrayList<>();
-            LootTableInfo.getItemsForLootTableKey(lootTable).forEach(item ->
-                itemStacks.add(ForgeRegistries.ITEMS.getValue(item).getDefaultInstance()));
-
-
-//            Version version = Version.v1_0;
-//            LootTableKey key = VaultRegistry.LOOT_TABLE.getKey(lootTable);
-//
-//            if (location.equals(VaultMod.id("treasure_chest"))) {
-//                LootTableGenerator generator = new LootTableGenerator(version, key, 0.0F);
-//                generator.setSource(null);
-//                generator.getItems().forEachRemaining(itemStacks::add);
-//            } else {
-//                TieredLootTableGenerator generator = new TieredLootTableGenerator(version, key, 0.0f, 0.0f, 54);
-//                generator.setSource(null);
-//                generator.getTable().getEntries().forEach((entry) -> {
-//                    iskallia.vault.core.util.WeightedList<LootEntry> entries = entry.getPool().flatten();
-//                    double totalWeight = entries.getTotalWeight();
-//                    entries.forEach((lootEntry, weight) -> {
-//
-//                    });
-//
-//                });
-//            }
-
-            String[] splitLocation = lootTable.getPath().split("_");
-            String pool = splitLocation[splitLocation.length - 1].replace("lvl", "");
-            Component label = new TextComponent("Pool: " + pool);
-            try {
-                Integer.parseInt(pool);
-                label = new TextComponent("Level: " + pool + "+");
-            } catch (NumberFormatException ignored) {}
-
+            var lootTable1 = VaultRegistry.LOOT_TABLE.getKey(lootTable).get(Version.latest());
+            List<LootTable.Entry> entries = lootTable1.getEntries();
+            int idx = 1;
+            for (LootTable.Entry entry : entries) {
+                itemStacks.addAll(processLootTableEntry(entry, "Roll #" + idx + " ("+(entry.getRoll().getMin() == entry.getRoll().getMax() ? "" :entry.getRoll().getMin()+"x-")+entry.getRoll().getMax()+"x)"));
+                idx++;
+            }
+            Component label = new TextComponent("Level: " + infoConfigLootInfo.getLootTableMap().get(lootTable).getLevel() + "+");
             toReturn.add(LabeledLootInfo.of(itemStacks, label, null));
         });
 
@@ -493,8 +470,64 @@ public class JEIRecipeProvider {
         return toReturn;
     }
 
+    protected static List<LabeledLootInfo> getChampionLoot() {
+
+        List<LabeledLootInfo> lootInfos = new ArrayList<>();
+        for (LegacyLootTablesConfig.Level lvlEntry : ((AccessorLegacyLootTablesConfig)ModConfigs.LOOT_TABLES).getLEVELS()) {
+            LootTable table = VaultRegistry.LOOT_TABLE.getKey(lvlEntry.CHAMPION).get(Version.latest());
+            List<ItemStack> itemStacks = new ArrayList<>();
+            int idx = 1;
+            for (LootTable.Entry entry: table.getEntries()) {
+                itemStacks.addAll(processLootTableEntry(entry, "Roll #" + idx + " ("+(entry.getRoll().getMin() == entry.getRoll().getMax() ? "" :entry.getRoll().getMin()+"x-")+entry.getRoll().getMax()+"x)"));
+                idx++;
+            }
+            lootInfos.add(LabeledLootInfo.of(itemStacks, new TextComponent("Champion Level "+lvlEntry.getLevel()+"+") , null));
+        }
+
+        return lootInfos;
+    }
+
+    private static List<ItemStack> processLootTableEntry(LootTable.Entry entry, @Nullable String rollText) {
+        List<ItemStack> itemStacks = new ArrayList<>();
+        LootPool pool = entry.getPool();
+        List<ItemStack>  loot = processLootPool(pool, rollText,1d);
+        itemStacks.addAll(loot);
+        return itemStacks;
+    }
+
+    private static List<ItemStack> processLootPool(LootPool pool, String rollText, Double weightMultiplier) {
+        List<ItemStack> stacks = new ArrayList<>();
+        iskallia.vault.core.util.WeightedList<Object> children = pool.getChildren();
+        for (Map.Entry<Object, Double> entry : children.entrySet()) {
+            var k = entry.getKey();
+            var weight = entry.getValue();
+            if (k instanceof LootPool lootpool) {
+                var nestedStacks = processLootPool(lootpool, rollText, weight / children.getTotalWeight());
+                stacks.addAll(nestedStacks);
+            }
+            if (k instanceof ItemLootEntry lootEntry) {
+                var is = new ItemStack(lootEntry.getItem());
+                var nbt = lootEntry.getNbt();
+                if (nbt != null) {
+                    is.setTag(nbt.copy());
+                }
+                is = formatItemStack(is, lootEntry.getCount().getMin(), lootEntry.getCount().getMax(), weightMultiplier * weight, children.getTotalWeight(), null, rollText);
+                stacks.add(is);
+            }
+        }
+        return stacks;
+    }
+
     private static ItemStack formatItemStack(ItemStack item, int amountMin, int amountMax, double weight, double totalWeight, @Nullable Integer amount) {
+        return formatItemStack(item, amountMin, amountMax, weight, totalWeight, amount, null);
+    }
+
+    private static ItemStack formatItemStack(ItemStack item, int amountMin, int amountMax, double weight, double totalWeight, @Nullable Integer amount, @Nullable String rollText) {
         ItemStack result = item.copy();
+        if (item.isEmpty()) {
+            result = new ItemStack(Items.BARRIER);
+            result.setHoverName(new TextComponent("Nothing"));
+        }
         result.setCount(amount == null ? amountMax : amount);
         double chance =  weight / totalWeight * 100;
         CompoundTag nbt = result.getOrCreateTagElement("display");
@@ -507,6 +540,10 @@ public class JEIRecipeProvider {
             MutableComponent countLabel = new TextComponent(amount == null ? "Count: " : "Cost: ");
             countLabel.append(amountMin + " - " + amountMax);
             list.add(StringTag.valueOf(Component.Serializer.toJson(countLabel)));
+        }
+        if (rollText != null) {
+            MutableComponent rollLabel = new TextComponent(rollText);
+            list.add(StringTag.valueOf(Component.Serializer.toJson(rollLabel.withStyle(ChatFormatting.DARK_AQUA))));
         }
         nbt.put("Lore", list);
         return result;
