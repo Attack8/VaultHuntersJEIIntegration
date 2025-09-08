@@ -19,6 +19,7 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -118,11 +119,11 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCategories(makeLabeledIngredientPoolCategory(guiHelper, ALTAR_INGREDIENTS, ModBlocks.VAULT_ALTAR));
         registration.addRecipeCategories(makeRecyclerCategory(guiHelper, VAULT_RECYCLER, ModBlocks.VAULT_RECYCLER));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, CHALLENGE_ACTION_LOOT, ModBlocks.RAID_CONTROLLER));
-        registration.addRecipeCategories(new LabeledLootInfoRecipeCategory(guiHelper, CHAMPION_LOOT, new ItemStack(ModItems.SCAVENGER_TREASURE_GOBLET), new TextComponent("Champion Loot"), OUTPUT));
+        registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, CHAMPION_LOOT, ModItems.SCAVENGER_TREASURE_GOBLET, new TextComponent("Champion Loot")));
 
         LootInfoGroupDefinitionRegistry.get().forEach((location, groupDefinition) ->
                 registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper,
-                        adapt(groupDefinition.recipeType()), groupDefinition.itemStack().getItem())));
+                        adapt(groupDefinition.recipeType()), groupDefinition.itemStack().getItem(), groupDefinition.titleComponentSupplier().get())));
 
         if (ModConfig.shouldShow()) {
             registration.addRecipeCategories(makeLootInfoCategory(guiHelper, MYSTERY_BOX, ModItems.MYSTERY_BOX));
@@ -178,6 +179,10 @@ public class TheVaultJEIPlugin implements IModPlugin {
 
     public static LabeledLootInfoRecipeCategory makeLabeledLootInfoCategory(IGuiHelper guiHelper, RecipeType<LabeledLootInfo> recipeType, ItemLike icon) {
         return new LabeledLootInfoRecipeCategory(guiHelper, recipeType, new ItemStack(icon), OUTPUT);
+    }
+
+    public static LabeledLootInfoRecipeCategory makeLabeledLootInfoCategory(IGuiHelper guiHelper, RecipeType<LabeledLootInfo> recipeType, ItemLike icon, Component title) {
+        return new LabeledLootInfoRecipeCategory(guiHelper, recipeType, new ItemStack(icon), title, OUTPUT);
     }
 
     public static LabeledLootInfoRecipeCategory makeLabeledIngredientPoolCategory(IGuiHelper guiHelper, RecipeType<LabeledLootInfo> recipeType, ItemLike icon) {
