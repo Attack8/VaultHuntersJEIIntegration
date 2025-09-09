@@ -301,7 +301,11 @@ public class JEIRecipeProvider {
     }
 
     public static ItemStack addLoreToRecyclerOutput(ChanceItemStackEntry entry, @Nullable VaultGearRarity rarity) {
-        AtomicReference<ItemStack> toReturn = new AtomicReference<>(entry.getMatchingStack());
+        var stack = entry.getMatchingStack();
+        if (stack.isEmpty()){
+            return stack;
+        }
+        AtomicReference<ItemStack> toReturn = new AtomicReference<>(stack);
 
         AtomicReference<Float> chance = new AtomicReference<>(entry.getChance());
 
@@ -313,8 +317,10 @@ public class JEIRecipeProvider {
             if (entry instanceof ConditionalChanceItemStackEntry ccise) {
                 ccise.getConditionalOutputs().forEach(((condition, chanceItemStackEntry) -> {
                     if (condition.matches(rarity, false) || condition.matches(rarity, true)) {
-                        toReturn.set(chanceItemStackEntry.getMatchingStack());
-                        chance.set(chanceItemStackEntry.getChance());
+                        if (!chanceItemStackEntry.getMatchingStack().isEmpty()) {
+                            toReturn.set(chanceItemStackEntry.getMatchingStack());
+                            chance.set(chanceItemStackEntry.getChance());
+                        }
                     }
                 }));
             }
@@ -481,7 +487,7 @@ public class JEIRecipeProvider {
                 itemStacks.addAll(processLootTableEntry(entry, "Roll #" + idx + " ("+(entry.getRoll().getMin() == entry.getRoll().getMax() ? "" :entry.getRoll().getMin()+"x-")+entry.getRoll().getMax()+"x)"));
                 idx++;
             }
-            lootInfos.add(LabeledLootInfo.of(itemStacks, new TextComponent("Champion Level "+lvlEntry.getLevel()+"+") , null));
+            lootInfos.add(LabeledLootInfo.of(itemStacks, new TextComponent("Level "+lvlEntry.getLevel()+"+") , null));
         }
 
         return lootInfos;
