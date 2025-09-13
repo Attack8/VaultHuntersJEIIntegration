@@ -81,10 +81,10 @@ public class JEIRecipeProvider {
     public static List<LabeledLootInfo> labelDefaultLootInfo(ResourceLocation location) {
         List<LabeledLootInfo> toReturn = new ArrayList<>();
         Set<ResourceLocation> lootTableKeys = getLootTableKeysForLootInfoGroup(location);
-        var infoConfigLootInfo = (AccessorLootInfoConfigLootInfo)ModConfigs.LOOT_INFO_CONFIG.getLootInfoMap().get(location);
+        AccessorLootInfoConfigLootInfo infoConfigLootInfo = (AccessorLootInfoConfigLootInfo)ModConfigs.LOOT_INFO_CONFIG.getLootInfoMap().get(location);
         lootTableKeys.forEach(lootTable -> {
             List<ItemStack> itemStacks = new ArrayList<>();
-            var lootTable1 = VaultRegistry.LOOT_TABLE.getKey(lootTable).get(Version.latest());
+            LootTable lootTable1 = VaultRegistry.LOOT_TABLE.getKey(lootTable).get(Version.latest());
             List<LootTable.Entry> entries = lootTable1.getEntries();
             int idx = 1;
             for (LootTable.Entry entry : entries) {
@@ -301,7 +301,7 @@ public class JEIRecipeProvider {
     }
 
     public static ItemStack addLoreToRecyclerOutput(ChanceItemStackEntry entry, @Nullable VaultGearRarity rarity) {
-        var stack = entry.getMatchingStack();
+        ItemStack stack = entry.getMatchingStack();
         if (stack.isEmpty()){
             return stack;
         }
@@ -505,15 +505,15 @@ public class JEIRecipeProvider {
         List<ItemStack> stacks = new ArrayList<>();
         iskallia.vault.core.util.WeightedList<Object> children = pool.getChildren();
         for (Map.Entry<Object, Double> entry : children.entrySet()) {
-            var k = entry.getKey();
-            var weight = entry.getValue();
+            Object k = entry.getKey();
+            Double weight = entry.getValue();
             if (k instanceof LootPool lootpool) {
-                var nestedStacks = processLootPool(lootpool, rollText, weight / children.getTotalWeight());
+                List<ItemStack> nestedStacks = processLootPool(lootpool, rollText, weight / children.getTotalWeight());
                 stacks.addAll(nestedStacks);
             }
             if (k instanceof ItemLootEntry lootEntry) {
-                var is = new ItemStack(lootEntry.getItem());
-                var nbt = lootEntry.getNbt();
+                ItemStack is = new ItemStack(lootEntry.getItem());
+                CompoundTag nbt = lootEntry.getNbt();
                 if (nbt != null) {
                     is.setTag(nbt.copy());
                 }

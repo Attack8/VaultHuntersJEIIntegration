@@ -123,7 +123,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
 
         LootInfoGroupDefinitionRegistry.get().forEach((location, groupDefinition) ->
                 registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper,
-                        adapt(groupDefinition.recipeType()), groupDefinition.itemStack().getItem(), groupDefinition.titleComponentSupplier().get())));
+                        adapt(groupDefinition.recipeType()), groupDefinition.itemStack().getItem(), groupDefinition.titleComponent())));
 
         if (ModConfig.shouldShow()) {
             registration.addRecipeCategories(makeLootInfoCategory(guiHelper, MYSTERY_BOX, ModItems.MYSTERY_BOX));
