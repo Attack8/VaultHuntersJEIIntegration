@@ -5,6 +5,8 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "TheVaultJEI.refmap.json",
   "mixins": [
+    "AccessorLegacyLootTablesConfig",
+    "AccessorLootInfoConfigLootInfo",
     "IntegrationJEIMixin",
     "ShopPedestalConfigMixin",
     "raid.ChallengeActionConfigAccessor",
