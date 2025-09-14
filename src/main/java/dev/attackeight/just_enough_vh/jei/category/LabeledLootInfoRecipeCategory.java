@@ -35,10 +35,14 @@ public class LabeledLootInfoRecipeCategory implements IRecipeCategory<LabeledLoo
     private final RecipeIngredientRole role;
 
     public LabeledLootInfoRecipeCategory(IGuiHelper guiHelper, RecipeType<LabeledLootInfo> recipeType, ItemStack icon, RecipeIngredientRole role) {
+        this(guiHelper, recipeType, icon, icon.getItem().getName(icon), role);
+    }
+
+    public LabeledLootInfoRecipeCategory(IGuiHelper guiHelper, RecipeType<LabeledLootInfo> recipeType, ItemStack icon, Component titleComponent, RecipeIngredientRole role) {
         this.recipeType = recipeType;
         this.background = guiHelper.createDrawable(TEXTURE, 0, 0, 162, 108);
         this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, icon);
-        this.titleComponent = icon.getItem().getName(icon);
+        this.titleComponent = titleComponent;
         this.role = role;
     }
 

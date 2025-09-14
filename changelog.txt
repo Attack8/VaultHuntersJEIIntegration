@@ -63,3 +63,8 @@ Just Enough VH v1.1
  Just Enough VH v1.4
   - Add JEI Integration for various 'controller' blocks (thanks @radimous)
   - Rework Loot Info categories to be separated per level
+
+ Just Enough VH v1.5
+   - Added Champion Loot category
+   - Loot info categories show separate rolls and chances
+   - Fix handling of empty rewards
