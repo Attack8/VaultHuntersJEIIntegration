@@ -7,6 +7,7 @@
   "mixins": [
     "AccessorLegacyLootTablesConfig",
     "AccessorLootInfoConfigLootInfo",
+    "AccessorVaultRecyclerConfig",
     "IntegrationJEIMixin",
     "ShopPedestalConfigMixin",
     "raid.ChallengeActionConfigAccessor",
