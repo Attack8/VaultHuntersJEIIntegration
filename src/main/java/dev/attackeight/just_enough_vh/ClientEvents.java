@@ -1,5 +1,8 @@
 package dev.attackeight.just_enough_vh;
 
+import iskallia.vault.gear.VaultGearState;
+import iskallia.vault.gear.data.VaultGearData;
+import iskallia.vault.gear.item.VaultGearItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -23,6 +26,12 @@ public class ClientEvents {
         List<Component> tooltip = event.getToolTip();
 
         if (!current.isEmpty() && Screen.hasShiftDown()) {
+            if (current.getItem() instanceof VaultGearItem) {
+                VaultGearState state = VaultGearData.read(current).getState();
+                if (state != VaultGearState.UNIDENTIFIED) {
+                    return;
+                }
+            }
             ResourceLocation item = current.getItem().getRegistryName();
             if (JustEnoughVH.BLACK_MARKET_ITEMS.containsKey(item)) {
                 tooltip.add((new TextComponent("  - Black Market (Level: " +
