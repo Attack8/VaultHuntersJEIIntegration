@@ -269,7 +269,7 @@ public class JEIRecipeProvider {
         for (VaultGearRarity rarity : VaultGearRarity.values()) {
             if (rarity.equals(VaultGearRarity.UNIQUE) || rarity.equals(VaultGearRarity.SPECIAL)) continue;
             List<ItemStack> pieceStack = generatePieceStack(rarity, false);
-            List<ItemStack> outputs = List.of(
+            List<List<ItemStack>> outputs = List.of(
                 addLoreToRecyclerOutput(gearOutput.getMainOutput(), rarity, false),
                 addLoreToRecyclerOutput(gearOutput.getExtraOutput1(), rarity, false),
                 addLoreToRecyclerOutput(gearOutput.getExtraOutput2(), rarity, false)
@@ -281,7 +281,7 @@ public class JEIRecipeProvider {
         for (VaultGearRarity rarity : VaultGearRarity.values()) {
             if (rarity.equals(VaultGearRarity.UNIQUE) || rarity.equals(VaultGearRarity.SPECIAL)) continue;
             List<ItemStack> pieceStack = generatePieceStack(rarity, true);
-            List<ItemStack> outputsLegend = List.of(
+            List<List<ItemStack>> outputsLegend = List.of(
                 addLoreToRecyclerOutput(gearOutput.getMainOutput(), rarity, true),
                 addLoreToRecyclerOutput(gearOutput.getExtraOutput1(), rarity, true),
                 addLoreToRecyclerOutput(gearOutput.getExtraOutput2(), rarity, true)
@@ -309,27 +309,25 @@ public class JEIRecipeProvider {
     }
 
     public static RecyclerRecipe getRecyclerRecipe(ItemStack input, VaultRecyclerConfig.RecyclerOutput output) {
-        return RecyclerRecipe.of(input, List.of(
+        return new RecyclerRecipe(List.of(input), List.of(
                 addLoreToRecyclerOutput(output.getMainOutput()),
                 addLoreToRecyclerOutput(output.getExtraOutput1()),
                 addLoreToRecyclerOutput(output.getExtraOutput2())));
     }
 
-    public static ItemStack addLoreToRecyclerOutput(ChanceItemStackEntry entry) {
+    public static List<ItemStack> addLoreToRecyclerOutput(ChanceItemStackEntry entry) {
         return addLoreToRecyclerOutput(entry, null, false);
     }
 
-    public static ItemStack addLoreToRecyclerOutput(ChanceItemStackEntry entry, @Nullable VaultGearRarity rarity, boolean legendary) {
+    public static List<ItemStack> addLoreToRecyclerOutput(ChanceItemStackEntry entry, @Nullable VaultGearRarity rarity, boolean legendary) {
         ItemStack stack = entry.getMatchingStack();
-        if (stack.isEmpty()){
-            return stack;
+        float chance = entry.getChance();
+        var outputs = new LinkedHashMap<ItemStack, Float>(); // insertion order
+        if (rarity != null && chance < 1f) {
+            chance += ModConfigs.VAULT_RECYCLER.getAdditionalOutputRarityChance(rarity);
         }
-        AtomicReference<ItemStack> toReturn = new AtomicReference<>(stack);
-
-        AtomicReference<Float> chance = new AtomicReference<>(entry.getChance());
-
-        if (rarity != null && chance.get() < 1f) {
-            chance.updateAndGet(v -> v + ModConfigs.VAULT_RECYCLER.getAdditionalOutputRarityChance(rarity));
+        if (!stack.isEmpty() && chance > 0) {
+            outputs.put(stack, entry.getChance());
         }
 
         try {
@@ -339,30 +337,34 @@ public class JEIRecipeProvider {
                     var chanceItemStackEntry =  condOut.getValue();
                     if (condition.matches(rarity, false, legendary) || condition.matches(rarity, true, legendary)) {
                         if (!chanceItemStackEntry.getMatchingStack().isEmpty() && chanceItemStackEntry.getChance() > 0) {
-                            toReturn.set(chanceItemStackEntry.getMatchingStack());
-                            chance.set(chanceItemStackEntry.getChance());
-                            break;
+                            outputs.put(chanceItemStackEntry.getMatchingStack(), chanceItemStackEntry.getChance());
                         }
                     }
                 }
             }
         } catch (NullPointerException ignored) {}
 
-        CompoundTag nbt = toReturn.get().getOrCreateTagElement("display");
-        ListTag list = nbt.getList("Lore", 8);
-        MutableComponent chanceLabel = new TextComponent("Chance: ");
+        List<ItemStack> out = new ArrayList<>();
+        for (Map.Entry<ItemStack, Float> output: outputs.entrySet()) {
+            ItemStack outStack = output.getKey();
+            CompoundTag nbt = outStack.getOrCreateTagElement("display");
+            ListTag list = nbt.getList("Lore", 8);
+            MutableComponent chanceLabel = new TextComponent("Chance: ");
 
-        chanceLabel.append(String.format("%.0f", chance.get() * 100));
-        chanceLabel.append("%");
-        list.add(StringTag.valueOf(Component.Serializer.toJson(chanceLabel.withStyle(ChatFormatting.YELLOW))));
+            chanceLabel.append(String.format("%.0f", output.getValue() * 100));
+            chanceLabel.append("%");
+            list.add(StringTag.valueOf(Component.Serializer.toJson(chanceLabel.withStyle(ChatFormatting.YELLOW))));
 
-        if (entry.getMinCount() != entry.getMaxCount()) {
-            MutableComponent countLabel = new TextComponent("Count: ");
-            countLabel.append(entry.getMinCount() + " - " + entry.getMaxCount());
-            list.add(StringTag.valueOf(Component.Serializer.toJson(countLabel)));
+            if (entry.getMinCount() != entry.getMaxCount()) {
+                MutableComponent countLabel = new TextComponent("Count: ");
+                countLabel.append(entry.getMinCount() + " - " + entry.getMaxCount());
+                list.add(StringTag.valueOf(Component.Serializer.toJson(countLabel)));
+            }
+            nbt.put("Lore", list);
+            out.add(outStack);
         }
-        nbt.put("Lore", list);
-        return chance.get() == 0f ? ItemStack.EMPTY : toReturn.get();
+
+        return out;
     }
 
     public static List<ItemStack> generatePieceStack(VaultGearRarity rarity, boolean legendary) {

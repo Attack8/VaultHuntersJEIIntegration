@@ -64,9 +64,9 @@ public class VaultRecyclerRecipeCategory implements IRecipeCategory<RecyclerReci
     public void setRecipe(IRecipeLayoutBuilder builder, RecyclerRecipe recipe, IFocusGroup focuses) {
         builder.addSlot(RecipeIngredientRole.INPUT, 1, 5).addIngredients(Ingredient.of(recipe.input().stream()));
 
-        builder.addSlot(RecipeIngredientRole.OUTPUT, 49, 5).addItemStack(recipe.outputs().get(0));
-        builder.addSlot(RecipeIngredientRole.OUTPUT, 67, 5).addItemStack(recipe.outputs().get(1));
-        builder.addSlot(RecipeIngredientRole.OUTPUT, 85, 5).addItemStack(recipe.outputs().get(2));
+        builder.addSlot(RecipeIngredientRole.OUTPUT, 49, 5).addItemStacks(recipe.outputs().get(0));
+        builder.addSlot(RecipeIngredientRole.OUTPUT, 67, 5).addItemStacks(recipe.outputs().get(1));
+        builder.addSlot(RecipeIngredientRole.OUTPUT, 85, 5).addItemStacks(recipe.outputs().get(2));
     }
 
     @ParametersAreNonnullByDefault
