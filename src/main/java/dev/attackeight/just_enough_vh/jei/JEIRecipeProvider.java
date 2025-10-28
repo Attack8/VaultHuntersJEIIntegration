@@ -5,7 +5,6 @@ import dev.attackeight.just_enough_vh.mixin.AccessorLegacyLootTablesConfig;
 import dev.attackeight.just_enough_vh.mixin.AccessorLootInfoConfigLootInfo;
 import dev.attackeight.just_enough_vh.mixin.AccessorVaultRecyclerConfig;
 import dev.attackeight.just_enough_vh.mixin.raid.*;
-import io.github.a1qs.vaultadditions.config.vault.AbstractStatueLootConfig;
 import iskallia.vault.VaultMod;
 import iskallia.vault.block.PlaceholderBlock;
 import iskallia.vault.block.entity.challenge.raid.action.*;
@@ -56,7 +55,6 @@ import org.apache.commons.lang3.tuple.Triple;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class JEIRecipeProvider {
 
@@ -486,22 +484,6 @@ public class JEIRecipeProvider {
         return is;
     }
 
-    public static <T extends AbstractStatueLootConfig> List<LabeledLootInfo> getStatueLoot(T lootConfig) {
-        List<LabeledLootInfo> toReturn = new ArrayList<>();
-        List<ItemStack> items = new ArrayList<>();
-        int interval = lootConfig.getInterval();
-        int minCount = lootConfig.getRollRange().getMin();
-        int maxCount = lootConfig.getRollRange().getMax();
-        int totalWeight = lootConfig.getDrops().getTotalWeight();
-        lootConfig.getDrops().forEach((product, weight) ->
-            items.add(formatItemStack(product.generateItemStack(), product.amountMin, product.amountMax, weight.intValue(), totalWeight)));
-        toReturn.add(LabeledLootInfo.of(items,
-                new TextComponent("Interval: " + interval),
-                new TextComponent("Count: " + minCount + " - " + maxCount)
-        ));
-        return toReturn;
-    }
-
     protected static List<LabeledLootInfo> getChampionLoot() {
 
         List<LabeledLootInfo> lootInfos = new ArrayList<>();
@@ -550,7 +532,7 @@ public class JEIRecipeProvider {
         return stacks;
     }
 
-    private static ItemStack formatItemStack(ItemStack item, int amountMin, int amountMax, double weight, double totalWeight, @Nullable Integer amount) {
+    protected static ItemStack formatItemStack(ItemStack item, int amountMin, int amountMax, double weight, double totalWeight, @Nullable Integer amount) {
         return formatItemStack(item, amountMin, amountMax, weight, totalWeight, amount, null);
     }
 

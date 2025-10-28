@@ -146,9 +146,6 @@ repositories {
         name = "Illusive Soulworks maven"
         url = "https://maven.theillusivec4.top/"
     }
-    maven {
-        url = "https://jitpack.io"
-    }
 
     // If you have mod jar dependencies in ./libs, you can declare them as a repository like so:
     flatDir {
@@ -170,19 +167,19 @@ dependencies {
     compileOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}:api") // Adds JEI API as a compile dependency
     runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}") // Adds the full JEI mod as a runtime dependency
 
-    // compileOnly "com.github.Attack8:vaultadditions:v1.16.0"
+    compileOnly "com.github.JustAHuman_XD:VaultAdditions:1.19.6"
     // runtimeOnly "com.github.Attack8:vaultadditions:v1.16.0"
 
-    implementation fg.deobf("xyz.iwolfking:vaultadditions:1.19.0")
-    implementation fg.deobf("xyz.iwolfking:woldsvaultsstandalone:0.19.0-all")
-    runtimeOnly fg.deobf("xyz.iwolfking:infernalmobs:1.18.6")
-    runtimeOnly fg.deobf("curse.maven:pehkui-319596:4823461")
-    implementation fg.deobf("curse.maven:vault-hunters-api-1118899:7102779")
-    runtimeOnly fg.deobf("curse.maven:angel-ring-333396:4641783")
-    runtimeOnly fg.deobf("curse.maven:thermal-foundation-222880:4788649")
-    runtimeOnly fg.deobf("curse.maven:thermal-expansion-69163:4782927")
+    // implementation fg.deobf("xyz.iwolfking:vaultadditions:1.19.0")
+    // implementation fg.deobf("xyz.iwolfking:woldsvaultsstandalone:0.19.0-all")
+    // runtimeOnly fg.deobf("xyz.iwolfking:infernalmobs:1.18.6")
+    // runtimeOnly fg.deobf("curse.maven:pehkui-319596:4823461")
+    // implementation fg.deobf("curse.maven:vault-hunters-api-1118899:7102779")
+    // runtimeOnly fg.deobf("curse.maven:angel-ring-333396:4641783")
+    // runtimeOnly fg.deobf("curse.maven:thermal-foundation-222880:4788649")
+    // runtimeOnly fg.deobf("curse.maven:thermal-expansion-69163:4782927")
 
-    implementation fg.deobf("curse.maven:vault-hunters-official-mod-458203:7099219")
+    implementation fg.deobf("curse.maven:vault-hunters-official-mod-458203:7110405")
 
     runtimeOnly fg.deobf("curse.maven:alexs-mobs-426558:3853078")
     runtimeOnly fg.deobf("curse.maven:applied-energistics-2-223794:4136407")
