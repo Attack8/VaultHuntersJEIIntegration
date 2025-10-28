@@ -68,3 +68,6 @@ Just Enough VH v1.1
    - Added Champion Loot category
    - Loot info categories show separate rolls and chances
    - Fix handling of empty rewards
+
+ Just Enough VH v1.6
+   - Compatibility with VH 3.19.6
