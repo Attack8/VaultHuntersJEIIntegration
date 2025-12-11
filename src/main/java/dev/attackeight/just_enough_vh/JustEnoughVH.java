@@ -28,7 +28,7 @@ public class JustEnoughVH {
     public static final Multimap<ResourceLocation, Integer> SHOP_PEDESTAL_ITEMS = HashMultimap.create();
 
     public static ResourceLocation rl(String path) {
-        return new ResourceLocation(JustEnoughVH.ID, path);
+        return ResourceLocation.fromNamespaceAndPath(JustEnoughVH.ID, path);
     }
 
     public static boolean vaLoaded() {

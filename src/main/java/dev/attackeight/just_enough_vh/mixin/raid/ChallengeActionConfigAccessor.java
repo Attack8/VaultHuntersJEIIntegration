@@ -1,6 +1,6 @@
 package dev.attackeight.just_enough_vh.mixin.raid;
 
-import iskallia.vault.block.entity.challenge.raid.action.ChallengeAction;
+import iskallia.vault.core.vault.challenge.action.ChallengeAction;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 

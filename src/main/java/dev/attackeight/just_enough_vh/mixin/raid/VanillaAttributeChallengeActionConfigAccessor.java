@@ -1,6 +1,6 @@
 package dev.attackeight.just_enough_vh.mixin.raid;
 
-import iskallia.vault.block.entity.challenge.raid.action.VanillaAttributeChallengeAction;
+import iskallia.vault.core.vault.challenge.action.VanillaAttributeChallengeAction;
 import iskallia.vault.core.world.roll.DoubleRoll;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;

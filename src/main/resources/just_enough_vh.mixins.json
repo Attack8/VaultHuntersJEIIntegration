@@ -6,12 +6,11 @@
   "refmap": "TheVaultJEI.refmap.json",
   "mixins": [
     "IntegrationJEIMixin",
-    "ShopPedestalConfigMixin",
     "raid.ChallengeActionConfigAccessor",
     "raid.FloatingItemRewardChallengeActionConfigAccessor",
     "raid.LevelPoolAccessor",
     "raid.PoolChallengeActionConfigAccessor",
-    "raid.RaidActionsConfigAccessor",
+    "raid.ChallengeActionsConfigAccessor",
     "raid.ReferenceChallengeActionConfigAccessor",
     "raid.TileRewardChallengeConfigAccessor",
     "raid.VanillaAttributeChallengeActionConfigAccessor"

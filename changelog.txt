@@ -52,14 +52,19 @@ Just Enough VH v1.1
  - Fixed bug where item roles were incorrect for all categories
  - Backend code improvements
 
- Just Enough VH v1.2
-  - Fix issues with loading when VA not installed
-  - Fix issues with some categories not being removed all the way
+Just Enough VH v1.2
+ - Fix issues with loading when VA not installed
+ - Fix issues with some categories not being removed all the way
 
- Just Enough VH v1.3
-  - Update to Vault Hunters 3.19.5
-  - Overwrite default Vault Recycler recipes with improved system
+Just Enough VH v1.3
+ - Update to Vault Hunters 3.19.5
+ - Overwrite default Vault Recycler recipes with improved system
 
- Just Enough VH v1.4
-  - Add JEI Integration for various 'controller' blocks (thanks @radimous)
-  - Rework Loot Info categories to be separated per level
+Just Enough VH v1.4
+ - Add JEI Integration for various 'controller' blocks (thanks @radimous)
+ - Rework Loot Info categories to be separated per level
+
+Just Enough VH v1.5
+ - Update to Vault Hunters 3.20
+ - Add Deck Crafting Recipe Category
+ - Backend code improvements

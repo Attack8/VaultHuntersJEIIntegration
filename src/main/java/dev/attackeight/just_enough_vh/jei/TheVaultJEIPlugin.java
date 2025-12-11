@@ -37,10 +37,10 @@ public class TheVaultJEIPlugin implements IModPlugin {
     public static final RecipeType<ForgeItem> TRINKETS = RecipeType.create(JustEnoughVH.ID, "trinket", ForgeItem.class);
     public static final RecipeType<ForgeItem> INSCRIPTIONS = RecipeType.create(JustEnoughVH.ID, "forge_inscription", ForgeItem.class);
     public static final RecipeType<ForgeItem> JEWEL_CRAFTING = RecipeType.create(JustEnoughVH.ID, "jewel_crafting", ForgeItem.class);
+    public static final RecipeType<ForgeItem> DECK_CRAFTING = RecipeType.create(JustEnoughVH.ID, "deck_crafting", ForgeItem.class);
 
     public static final RecipeType<RecyclerRecipe> VAULT_RECYCLER = RecipeType.create(JustEnoughVH.ID, "vault_recycler", RecyclerRecipe.class);
 
-    public static final RecipeType<LootInfo> MYSTERY_BOX = RecipeType.create(JustEnoughVH.ID, "mystery_box", LootInfo.class);
     public static final RecipeType<LootInfo> MYSTERY_EGG = RecipeType.create(JustEnoughVH.ID, "mystery_egg", LootInfo.class);
     public static final RecipeType<LootInfo> HOSTILE_EGG = RecipeType.create(JustEnoughVH.ID, "hostile_egg", LootInfo.class);
 
@@ -53,8 +53,9 @@ public class TheVaultJEIPlugin implements IModPlugin {
     public static final RecipeType<LabeledLootInfo> CHALLENGE_ACTION_LOOT = RecipeType.create(JustEnoughVH.ID, "challenge_action_loot", LabeledLootInfo.class);
 
     // Optional
+    public static final RecipeType<LootInfo> MYSTERY_BOX = RecipeType.create(JustEnoughVH.ID, "mystery_box", LootInfo.class);
     public static final RecipeType<LabeledLootInfo> MATERIAL_BOX = RecipeType.create(JustEnoughVH.ID, "material_box", LabeledLootInfo.class);
-    public static final RecipeType<LootInfo> PANDORAS_BOX = RecipeType.create(JustEnoughVH.ID, "pandoras_box", LootInfo.class);
+    // public static final RecipeType<LootInfo> PANDORAS_BOX = RecipeType.create(JustEnoughVH.ID, "pandoras_box", LootInfo.class);
 
     // Vault Additions
     public static final RecipeType<LabeledLootInfo> VA_ARENA_STATUE = RecipeType.create(JustEnoughVH.ID, "va_arena_statue", LabeledLootInfo.class);
@@ -72,6 +73,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.TRINKET_FORGE), TRINKETS);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.INSCRIPTION_TABLE), INSCRIPTIONS);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.JEWEL_CRAFTING_TABLE), JEWEL_CRAFTING);
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.DECK_CRAFTING_STATION), DECK_CRAFTING);
         registration.addRecipeCatalyst(new ItemStack(ModItems.MYSTERY_EGG), MYSTERY_EGG);
         registration.addRecipeCatalyst(new ItemStack(ModItems.MYSTERY_HOSTILE_EGG), HOSTILE_EGG);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.BLACK_MARKET), BLACK_MARKET);
@@ -89,7 +91,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
 
         if (ModConfig.shouldShow()) {
             registration.addRecipeCatalyst(new ItemStack(ModItems.MYSTERY_BOX), MYSTERY_BOX);
-            registration.addRecipeCatalyst(new ItemStack(ModItems.PANDORAS_BOX), PANDORAS_BOX);
+            // registration.addRecipeCatalyst(new ItemStack(ModItems.PANDORAS_BOX), PANDORAS_BOX);
             registration.addRecipeCatalyst(new ItemStack(ModItems.MATERIAL_BOX), MATERIAL_BOX);
         }
 
@@ -107,6 +109,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCategories(makeForgeItemCategory(guiHelper, TRINKETS, ModBlocks.TRINKET_FORGE));
         registration.addRecipeCategories(makeForgeItemCategory(guiHelper, INSCRIPTIONS, ModBlocks.INSCRIPTION_TABLE));
         registration.addRecipeCategories(makeForgeItemCategory(guiHelper, JEWEL_CRAFTING, ModBlocks.JEWEL_CRAFTING_TABLE));
+        registration.addRecipeCategories(makeForgeItemCategory(guiHelper, DECK_CRAFTING, ModBlocks.DECK_CRAFTING_STATION));
         registration.addRecipeCategories(makeLootInfoCategory(guiHelper, MYSTERY_EGG, ModItems.MYSTERY_EGG));
         registration.addRecipeCategories(makeLootInfoCategory(guiHelper, HOSTILE_EGG, ModItems.MYSTERY_HOSTILE_EGG));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, BLACK_MARKET, ModBlocks.BLACK_MARKET));
@@ -123,7 +126,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
 
         if (ModConfig.shouldShow()) {
             registration.addRecipeCategories(makeLootInfoCategory(guiHelper, MYSTERY_BOX, ModItems.MYSTERY_BOX));
-            registration.addRecipeCategories(makeLootInfoCategory(guiHelper, PANDORAS_BOX, ModItems.PANDORAS_BOX));
+            // registration.addRecipeCategories(makeLootInfoCategory(guiHelper, PANDORAS_BOX, ModItems.PANDORAS_BOX));
             registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, MATERIAL_BOX, ModItems.MATERIAL_BOX));
         }
         if (JustEnoughVH.vaLoaded()) {
@@ -139,6 +142,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipes(TRINKETS, getForgeRecipes(ModConfigs.TRINKET_RECIPES));
         registration.addRecipes(INSCRIPTIONS, getForgeRecipes(ModConfigs.INSCRIPTION_RECIPES));
         registration.addRecipes(JEWEL_CRAFTING, getForgeRecipes(ModConfigs.JEWEL_CRAFTING_RECIPES));
+        registration.addRecipes(DECK_CRAFTING, getForgeRecipes(ModConfigs.DECK_CRAFTING_RECIPES));
         registration.addRecipes(MYSTERY_EGG, getFromPool(ModConfigs.MYSTERY_EGG.POOL));
         registration.addRecipes(HOSTILE_EGG, getFromPool(ModConfigs.MYSTERY_HOSTILE_EGG.POOL));
         registration.addRecipes(BLACK_MARKET, getBlackMarketLoot());
@@ -154,7 +158,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
 
         if (ModConfig.shouldShow()) {
             registration.addRecipes(MYSTERY_BOX, getFromPool(ModConfigs.MYSTERY_BOX.POOL));
-            registration.addRecipes(PANDORAS_BOX, getFromPool(ModConfigs.PANDORAS_BOX.POOL));
+            // TODO: registration.addRecipes(PANDORAS_BOX, getFromPool(ModConfigs.PANDORAS_BOX.POOL));
             registration.addRecipes(MATERIAL_BOX, getMaterialBoxLoot());
         }
         if (JustEnoughVH.vaLoaded()) {

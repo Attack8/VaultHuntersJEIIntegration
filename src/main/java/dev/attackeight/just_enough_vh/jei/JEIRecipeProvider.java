@@ -3,12 +3,9 @@ package dev.attackeight.just_enough_vh.jei;
 import dev.attackeight.just_enough_vh.JustEnoughVH;
 import dev.attackeight.just_enough_vh.mixin.raid.*;
 import io.github.a1qs.vaultadditions.config.vault.AbstractStatueLootConfig;
-import iskallia.vault.config.LootInfoConfig;
+import iskallia.vault.VaultMod;
+import iskallia.vault.config.*;
 import iskallia.vault.block.PlaceholderBlock;
-import iskallia.vault.block.entity.challenge.raid.action.*;
-import iskallia.vault.config.OmegaSoulShardConfig;
-import iskallia.vault.config.SoulShardConfig;
-import iskallia.vault.config.VaultRecyclerConfig;
 import iskallia.vault.config.entry.ChanceItemStackEntry;
 import iskallia.vault.config.entry.ConditionalChanceItemStackEntry;
 import iskallia.vault.config.entry.IntRangeEntry;
@@ -16,6 +13,7 @@ import iskallia.vault.config.entry.LevelEntryList;
 import iskallia.vault.config.entry.recipe.ConfigForgeRecipe;
 import iskallia.vault.config.entry.vending.ProductEntry;
 import iskallia.vault.config.recipe.ForgeRecipesConfig;
+import iskallia.vault.core.vault.challenge.action.*;
 import iskallia.vault.core.world.loot.LootTableInfo;
 import iskallia.vault.gear.VaultGearRarity;
 import iskallia.vault.gear.crafting.recipe.VaultForgeRecipe;
@@ -48,8 +46,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.tags.ITag;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -86,27 +82,6 @@ public class JEIRecipeProvider {
             LootTableInfo.getItemsForLootTableKey(lootTable).forEach(item ->
                 itemStacks.add(ForgeRegistries.ITEMS.getValue(item).getDefaultInstance()));
 
-
-//            Version version = Version.v1_0;
-//            LootTableKey key = VaultRegistry.LOOT_TABLE.getKey(lootTable);
-//
-//            if (location.equals(VaultMod.id("treasure_chest"))) {
-//                LootTableGenerator generator = new LootTableGenerator(version, key, 0.0F);
-//                generator.setSource(null);
-//                generator.getItems().forEachRemaining(itemStacks::add);
-//            } else {
-//                TieredLootTableGenerator generator = new TieredLootTableGenerator(version, key, 0.0f, 0.0f, 54);
-//                generator.setSource(null);
-//                generator.getTable().getEntries().forEach((entry) -> {
-//                    iskallia.vault.core.util.WeightedList<LootEntry> entries = entry.getPool().flatten();
-//                    double totalWeight = entries.getTotalWeight();
-//                    entries.forEach((lootEntry, weight) -> {
-//
-//                    });
-//
-//                });
-//            }
-
             String[] splitLocation = lootTable.getPath().split("_");
             String pool = splitLocation[splitLocation.length - 1].replace("lvl", "");
             Component label = new TextComponent("Pool: " + pool);
@@ -130,29 +105,18 @@ public class JEIRecipeProvider {
         return lootInfo != null ? lootInfo.getLootTableKeys() : Collections.emptySet();
     }
 
-    @SuppressWarnings("unchecked")
     public static List<LabeledLootInfo> getShopPedestalLoot() {
         List<LabeledLootInfo> lootInfo = new ArrayList<>();
-        List<Pair<List<Triple<ItemStack, IntRangeEntry, Double>>, Integer>> pedestalInfo;
-        try {
-            pedestalInfo = (List<Pair<List<Triple<ItemStack, IntRangeEntry, Double>>, Integer>>)
-                    ModConfigs.SHOP_PEDESTAL.getClass().getMethod("getTrades").invoke(ModConfigs.SHOP_PEDESTAL);
-        } catch (Exception e) {
-            JustEnoughVH.LOGGER.error(e.toString());
-            return new ArrayList<>();
-        }
-        pedestalInfo.forEach(tierInfo -> {
-            List<Triple<ItemStack, IntRangeEntry, Double>> tier = tierInfo.getLeft();
-            int minLevel = tierInfo.getRight();
-            AtomicInteger totalWeight = new AtomicInteger();
-            tier.forEach(d -> totalWeight.addAndGet(d.getRight().intValue()));
+        ModConfigs.SHOP_PEDESTAL.LEVELS.forEach(tierInfo -> {
+            iskallia.vault.core.util.WeightedList<ShopPedestalConfig.ShopEntry> tier = tierInfo.TRADE_POOL;
+            int minLevel = tierInfo.getLevel();
             List<ItemStack> offers = new ArrayList<>();
-            tier.forEach(offerInfo -> {
-                ItemStack currentOffer = offerInfo.getLeft();
+            tier.forEach((offerInfo, weight) -> {
+                ItemStack currentOffer = offerInfo.OFFER;
                 if (!JustEnoughVH.SHOP_PEDESTAL_ITEMS.containsKey(currentOffer.getItem().getRegistryName()))
                     JustEnoughVH.SHOP_PEDESTAL_ITEMS.put(currentOffer.getItem().getRegistryName(), minLevel);
-                offers.add(formatItemStack(currentOffer, offerInfo.getMiddle().getMin(),
-                        offerInfo.getMiddle().getMax(), offerInfo.getRight().intValue(), totalWeight.get(), currentOffer.getCount()));
+                offers.add(formatItemStack(currentOffer, offerInfo.getCost().getMin(),
+                        offerInfo.getCost().getMax(), weight, tier.getTotalWeight(), currentOffer.getCount()));
             });
             lootInfo.add(LabeledLootInfo.of(offers, new TextComponent("Level " + minLevel + "+ "), null));
         });
@@ -200,10 +164,10 @@ public class JEIRecipeProvider {
         ModConfigs.MOD_BOX.POOL.forEach((mod, k) -> {
             AtomicInteger totalWeight = new AtomicInteger();
             List<ItemStack> results = new ArrayList<>();
-            k.forEach(d -> totalWeight.addAndGet(d.weight));
-            k.forEach(c -> results.add(formatItemStack(c.value.generateItemStack(), c.value.amountMin,
+            k.entries.forEach(d -> totalWeight.addAndGet(d.weight));
+            k.entries.forEach(c -> results.add(formatItemStack(c.value.generateItemStack(), c.value.amountMin,
                         c.value.amountMin, c.weight, totalWeight.get())));
-            lootInfo.add(LabeledLootInfo.of(results, new TextComponent("Mod: " + mod), null));
+            lootInfo.add(LabeledLootInfo.of(results, new TextComponent("Mod: " + mod), new TextComponent("Weight: " + k.weight)));
         });
         return lootInfo;
     }
@@ -282,7 +246,7 @@ public class JEIRecipeProvider {
 
     public static List<RecyclerRecipe> getRecyclerRecipes() {
         List<RecyclerRecipe> toReturn = new ArrayList<>();
-        VaultRecyclerConfig.RecyclerOutput gearOutput = ModConfigs.VAULT_RECYCLER.getGearRecyclingOutput();
+        VaultRecyclerConfig.RecyclerOutput gearOutput = ModConfigs.VAULT_RECYCLER.getRecyclingOutputOrDefault(VaultMod.id("gear"));
         for (VaultGearRarity rarity : VaultGearRarity.values()) {
             if (rarity.equals(VaultGearRarity.UNIQUE) || rarity.equals(VaultGearRarity.SPECIAL)) continue;
             List<ItemStack> pieceStack = generatePieceStack(rarity);
@@ -294,19 +258,19 @@ public class JEIRecipeProvider {
             toReturn.add(new RecyclerRecipe(pieceStack, outputs));
         }
 
-        VaultRecyclerConfig.RecyclerOutput trinketOutput = ModConfigs.VAULT_RECYCLER.getTrinketRecyclingOutput();
+        VaultRecyclerConfig.RecyclerOutput trinketOutput = ModConfigs.VAULT_RECYCLER.getRecyclingOutputOrDefault(ModItems.TRINKET);
         toReturn.add(getRecyclerRecipe(new ItemStack(ModItems.TRINKET), trinketOutput));
 
-        VaultRecyclerConfig.RecyclerOutput jewelOutput = ModConfigs.VAULT_RECYCLER.getJewelRecyclingOutput();
+        VaultRecyclerConfig.RecyclerOutput jewelOutput = ModConfigs.VAULT_RECYCLER.getRecyclingOutputOrDefault(ModItems.JEWEL);
         toReturn.add(getRecyclerRecipe(new ItemStack(ModItems.JEWEL), jewelOutput));
 
-        VaultRecyclerConfig.RecyclerOutput inscriptionOutput = ModConfigs.VAULT_RECYCLER.getInscriptionRecyclingOutput();
+        VaultRecyclerConfig.RecyclerOutput inscriptionOutput = ModConfigs.VAULT_RECYCLER.getRecyclingOutputOrDefault(ModItems.INSCRIPTION);
         toReturn.add(getRecyclerRecipe(new ItemStack(ModItems.INSCRIPTION), inscriptionOutput));
 
-        VaultRecyclerConfig.RecyclerOutput charmOutput = ModConfigs.VAULT_RECYCLER.getCharmRecyclingOutput();
+        VaultRecyclerConfig.RecyclerOutput charmOutput = ModConfigs.VAULT_RECYCLER.getRecyclingOutputOrDefault(ModItems.VAULT_GOD_CHARM);
         toReturn.add(getRecyclerRecipe(new ItemStack(ModItems.VAULT_GOD_CHARM), charmOutput));
 
-        VaultRecyclerConfig.RecyclerOutput voidStoneOutput = ModConfigs.VAULT_RECYCLER.getVoidStoneRecyclingOutput();
+        VaultRecyclerConfig.RecyclerOutput voidStoneOutput = ModConfigs.VAULT_RECYCLER.getRecyclingOutputOrDefault(ModItems.VOID_STONE);
         toReturn.add(getRecyclerRecipe(new ItemStack(ModItems.VOID_STONE), voidStoneOutput));
 
         return toReturn;
@@ -335,7 +299,7 @@ public class JEIRecipeProvider {
         try {
             if (entry instanceof ConditionalChanceItemStackEntry ccise) {
                 ccise.getConditionalOutputs().forEach(((condition, chanceItemStackEntry) -> {
-                    if (condition.matches(rarity, false) || condition.matches(rarity, true)) {
+                    if (condition.matches(rarity, false, (Boolean) null) || condition.matches(rarity, (Boolean) null, true)) {
                         toReturn.set(chanceItemStackEntry.getMatchingStack());
                         chance.set(chanceItemStackEntry.getChance());
                     }
@@ -384,7 +348,7 @@ public class JEIRecipeProvider {
     @SuppressWarnings("unchecked")
     protected static List<LabeledLootInfo> getChallengeActionLoot() {
         List<LabeledLootInfo> lootInfo = new ArrayList<>();
-        Map<String, ChallengeAction<?>> raidValues = ((RaidActionsConfigAccessor)ModConfigs.RAID_ACTIONS).getValues();
+        Map<String, ChallengeAction<?>> raidValues = ((ChallengeActionsConfigAccessor)ModConfigs.CHALLENGE_ACTIONS).getValues();
 
         for (var rv : raidValues.entrySet()) {
             String lootTableName = rv.getKey();
@@ -415,7 +379,7 @@ public class JEIRecipeProvider {
         ChallengeAction.Config config = challengeAction.getConfig();
         if (config instanceof ReferenceChallengeAction.Config) {
             var refConfig = (ReferenceChallengeActionConfigAccessor)config;
-            var derefConfig = ((RaidActionsConfigAccessor) ModConfigs.RAID_ACTIONS).getValues().get(refConfig.getPath());
+            var derefConfig = ((ChallengeActionsConfigAccessor) ModConfigs.CHALLENGE_ACTIONS).getValues().get(refConfig.getPath());
             return createChallengeActionStack(derefConfig, weight, totalWeight);
         }
         if (config instanceof FloatingItemRewardChallengeAction.Config) {
