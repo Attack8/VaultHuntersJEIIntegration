@@ -489,11 +489,7 @@ public class JEIRecipeProvider {
     }
 
     private static List<ItemStack> processLootTableEntry(LootTable.Entry entry, @Nullable String rollText) {
-        List<ItemStack> itemStacks = new ArrayList<>();
-        LootPool pool = entry.getPool();
-        List<ItemStack>  loot = processLootPool(pool, rollText,1d);
-        itemStacks.addAll(loot);
-        return itemStacks;
+        return processLootPool(entry.getPool(), rollText,1d);
     }
 
     private static List<ItemStack> processLootPool(LootPool pool, String rollText, Double weightMultiplier) {
