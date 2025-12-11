@@ -65,6 +65,14 @@ Just Enough VH v1.4
  - Rework Loot Info categories to be separated per level
 
 Just Enough VH v1.5
+  - Added Champion Loot category
+  - Loot info categories show separate rolls and chances
+  - Fix handling of empty rewards
+
+Just Enough VH v1.6
+  - Compatibility with VH 3.19.6
+
+Just Enough VH v1.7
  - Update to Vault Hunters 3.20
  - Add Deck Crafting Recipe Category
  - Backend code improvements

@@ -1,8 +1,10 @@
 package dev.attackeight.just_enough_vh.jei;
 
 import dev.attackeight.just_enough_vh.JustEnoughVH;
+import dev.attackeight.just_enough_vh.mixin.AccessorLegacyLootTablesConfig;
+import dev.attackeight.just_enough_vh.mixin.AccessorLootInfoConfigLootInfo;
+import dev.attackeight.just_enough_vh.mixin.AccessorVaultRecyclerConfig;
 import dev.attackeight.just_enough_vh.mixin.raid.*;
-import io.github.a1qs.vaultadditions.config.vault.AbstractStatueLootConfig;
 import iskallia.vault.VaultMod;
 import iskallia.vault.config.*;
 import iskallia.vault.block.PlaceholderBlock;
@@ -14,15 +16,19 @@ import iskallia.vault.config.entry.recipe.ConfigForgeRecipe;
 import iskallia.vault.config.entry.vending.ProductEntry;
 import iskallia.vault.config.recipe.ForgeRecipesConfig;
 import iskallia.vault.core.vault.challenge.action.*;
-import iskallia.vault.core.world.loot.LootTableInfo;
+import iskallia.vault.core.Version;
+import iskallia.vault.core.vault.VaultRegistry;
+import iskallia.vault.core.world.loot.LootPool;
+import iskallia.vault.core.world.loot.LootTable;
+import iskallia.vault.core.world.loot.entry.ItemLootEntry;
 import iskallia.vault.gear.VaultGearRarity;
 import iskallia.vault.gear.crafting.recipe.VaultForgeRecipe;
 import iskallia.vault.gear.data.AttributeGearData;
 import iskallia.vault.init.ModBlocks;
 import iskallia.vault.init.ModConfigs;
 import iskallia.vault.init.ModGearAttributes;
-import iskallia.vault.init.ModItems;
 import iskallia.vault.integration.jei.lootinfo.LootInfo;
+import iskallia.vault.item.gear.RecyclableItem;
 import iskallia.vault.tags.ModItemTags;
 import iskallia.vault.util.data.WeightedList;
 import mezz.jei.api.recipe.RecipeType;
@@ -31,12 +37,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.*;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -50,7 +53,6 @@ import net.minecraftforge.registries.tags.ITag;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class JEIRecipeProvider {
 
@@ -77,19 +79,17 @@ public class JEIRecipeProvider {
     public static List<LabeledLootInfo> labelDefaultLootInfo(ResourceLocation location) {
         List<LabeledLootInfo> toReturn = new ArrayList<>();
         Set<ResourceLocation> lootTableKeys = getLootTableKeysForLootInfoGroup(location);
+        AccessorLootInfoConfigLootInfo infoConfigLootInfo = (AccessorLootInfoConfigLootInfo)ModConfigs.LOOT_INFO_CONFIG.getLootInfoMap().get(location);
         lootTableKeys.forEach(lootTable -> {
             List<ItemStack> itemStacks = new ArrayList<>();
-            LootTableInfo.getItemsForLootTableKey(lootTable).forEach(item ->
-                itemStacks.add(ForgeRegistries.ITEMS.getValue(item).getDefaultInstance()));
-
-            String[] splitLocation = lootTable.getPath().split("_");
-            String pool = splitLocation[splitLocation.length - 1].replace("lvl", "");
-            Component label = new TextComponent("Pool: " + pool);
-            try {
-                Integer.parseInt(pool);
-                label = new TextComponent("Level: " + pool + "+");
-            } catch (NumberFormatException ignored) {}
-
+            LootTable lootTable1 = VaultRegistry.LOOT_TABLE.getKey(lootTable).get(Version.latest());
+            List<LootTable.Entry> entries = lootTable1.getEntries();
+            int idx = 1;
+            for (LootTable.Entry entry : entries) {
+                itemStacks.addAll(processLootTableEntry(entry, "Roll #" + idx + " ("+(entry.getRoll().getMin() == entry.getRoll().getMax() ? "" :entry.getRoll().getMin()+"x-")+entry.getRoll().getMax()+"x)"));
+                idx++;
+            }
+            Component label = new TextComponent("Level: " + infoConfigLootInfo.getLootTableMap().get(lootTable).getLevel() + "+");
             toReturn.add(LabeledLootInfo.of(itemStacks, label, null));
         });
 
@@ -246,85 +246,113 @@ public class JEIRecipeProvider {
 
     public static List<RecyclerRecipe> getRecyclerRecipes() {
         List<RecyclerRecipe> toReturn = new ArrayList<>();
-        VaultRecyclerConfig.RecyclerOutput gearOutput = ModConfigs.VAULT_RECYCLER.getRecyclingOutputOrDefault(VaultMod.id("gear"));
+        VaultRecyclerConfig config = ModConfigs.VAULT_RECYCLER;
+        Map<ResourceLocation, VaultRecyclerConfig.RecyclerOutput> output = ((AccessorVaultRecyclerConfig)config).getRecyclingOutput();
+        VaultRecyclerConfig.RecyclerOutput gearOutput = output.get(VaultMod.id("gear"));
+
+        // non legendary gear
         for (VaultGearRarity rarity : VaultGearRarity.values()) {
             if (rarity.equals(VaultGearRarity.UNIQUE) || rarity.equals(VaultGearRarity.SPECIAL)) continue;
-            List<ItemStack> pieceStack = generatePieceStack(rarity);
-            List<ItemStack> outputs = List.of(
-                    addLoreToRecyclerOutput(gearOutput.getMainOutput(), rarity),
-                    addLoreToRecyclerOutput(gearOutput.getExtraOutput1(), rarity),
-                    addLoreToRecyclerOutput(gearOutput.getExtraOutput2(), rarity)
+            List<ItemStack> pieceStack = generatePieceStack(rarity, false);
+            List<List<ItemStack>> outputs = List.of(
+                addLoreToRecyclerOutput(gearOutput.getMainOutput(), rarity, false),
+                addLoreToRecyclerOutput(gearOutput.getExtraOutput1(), rarity, false),
+                addLoreToRecyclerOutput(gearOutput.getExtraOutput2(), rarity, false)
             );
             toReturn.add(new RecyclerRecipe(pieceStack, outputs));
         }
 
-        VaultRecyclerConfig.RecyclerOutput trinketOutput = ModConfigs.VAULT_RECYCLER.getRecyclingOutputOrDefault(ModItems.TRINKET);
-        toReturn.add(getRecyclerRecipe(new ItemStack(ModItems.TRINKET), trinketOutput));
+        // legendary gear
+        for (VaultGearRarity rarity : VaultGearRarity.values()) {
+            if (rarity.equals(VaultGearRarity.UNIQUE) || rarity.equals(VaultGearRarity.SPECIAL)) continue;
+            List<ItemStack> pieceStack = generatePieceStack(rarity, true);
+            List<List<ItemStack>> outputsLegend = List.of(
+                addLoreToRecyclerOutput(gearOutput.getMainOutput(), rarity, true),
+                addLoreToRecyclerOutput(gearOutput.getExtraOutput1(), rarity, true),
+                addLoreToRecyclerOutput(gearOutput.getExtraOutput2(), rarity, true)
+            );
+            toReturn.add(new RecyclerRecipe(pieceStack, outputsLegend));
+        }
 
-        VaultRecyclerConfig.RecyclerOutput jewelOutput = ModConfigs.VAULT_RECYCLER.getRecyclingOutputOrDefault(ModItems.JEWEL);
-        toReturn.add(getRecyclerRecipe(new ItemStack(ModItems.JEWEL), jewelOutput));
-
-        VaultRecyclerConfig.RecyclerOutput inscriptionOutput = ModConfigs.VAULT_RECYCLER.getRecyclingOutputOrDefault(ModItems.INSCRIPTION);
-        toReturn.add(getRecyclerRecipe(new ItemStack(ModItems.INSCRIPTION), inscriptionOutput));
-
-        VaultRecyclerConfig.RecyclerOutput charmOutput = ModConfigs.VAULT_RECYCLER.getRecyclingOutputOrDefault(ModItems.VAULT_GOD_CHARM);
-        toReturn.add(getRecyclerRecipe(new ItemStack(ModItems.VAULT_GOD_CHARM), charmOutput));
-
-        VaultRecyclerConfig.RecyclerOutput voidStoneOutput = ModConfigs.VAULT_RECYCLER.getRecyclingOutputOrDefault(ModItems.VOID_STONE);
-        toReturn.add(getRecyclerRecipe(new ItemStack(ModItems.VOID_STONE), voidStoneOutput));
+        // non gear items
+        ITag<Item> vaultGearTag = Objects.requireNonNull(ForgeRegistries.ITEMS.tags()).getTag(ModItemTags.VAULT_GEAR);
+        for (Map.Entry<ResourceLocation, VaultRecyclerConfig.RecyclerOutput> recEntry : output.entrySet()) {
+            if (recEntry.getKey().equals(VaultMod.id("gear"))) {
+                continue;
+            }
+            var item = ForgeRegistries.ITEMS.getValue(recEntry.getKey());
+            if (item instanceof RecyclableItem recItem && !vaultGearTag.contains(item)) {
+                VaultRecyclerConfig.RecyclerOutput itemOutput = recItem.getOutput(new ItemStack(item));
+                if (itemOutput == null) {
+                    continue;
+                }
+                toReturn.add(getRecyclerRecipe(new ItemStack(item), itemOutput));
+            }
+        }
 
         return toReturn;
     }
 
     public static RecyclerRecipe getRecyclerRecipe(ItemStack input, VaultRecyclerConfig.RecyclerOutput output) {
-        return RecyclerRecipe.of(input, List.of(
+        return new RecyclerRecipe(List.of(input), List.of(
                 addLoreToRecyclerOutput(output.getMainOutput()),
                 addLoreToRecyclerOutput(output.getExtraOutput1()),
                 addLoreToRecyclerOutput(output.getExtraOutput2())));
     }
 
-    public static ItemStack addLoreToRecyclerOutput(ChanceItemStackEntry entry) {
-        return addLoreToRecyclerOutput(entry, null);
+    public static List<ItemStack> addLoreToRecyclerOutput(ChanceItemStackEntry entry) {
+        return addLoreToRecyclerOutput(entry, null, false);
     }
 
-    public static ItemStack addLoreToRecyclerOutput(ChanceItemStackEntry entry, @Nullable VaultGearRarity rarity) {
-        AtomicReference<ItemStack> toReturn = new AtomicReference<>(entry.getMatchingStack());
-
-        AtomicReference<Float> chance = new AtomicReference<>(entry.getChance());
-
-        if (rarity != null && chance.get() < 1f) {
-            chance.updateAndGet(v -> v + ModConfigs.VAULT_RECYCLER.getAdditionalOutputRarityChance(rarity));
+    public static List<ItemStack> addLoreToRecyclerOutput(ChanceItemStackEntry entry, @Nullable VaultGearRarity rarity, boolean legendary) {
+        ItemStack stack = entry.getMatchingStack();
+        float chance = entry.getChance();
+        var outputs = new LinkedHashMap<ItemStack, Float>(); // insertion order
+        if (rarity != null && chance < 1f) {
+            chance += ModConfigs.VAULT_RECYCLER.getAdditionalOutputRarityChance(rarity);
+        }
+        if (!stack.isEmpty() && chance > 0) {
+            outputs.put(stack, entry.getChance());
         }
 
         try {
             if (entry instanceof ConditionalChanceItemStackEntry ccise) {
-                ccise.getConditionalOutputs().forEach(((condition, chanceItemStackEntry) -> {
-                    if (condition.matches(rarity, false, (Boolean) null) || condition.matches(rarity, (Boolean) null, true)) {
-                        toReturn.set(chanceItemStackEntry.getMatchingStack());
-                        chance.set(chanceItemStackEntry.getChance());
+                for (var condOut : ccise.getConditionalOutputs().entrySet()) {
+                    var condition = condOut.getKey();
+                    var chanceItemStackEntry =  condOut.getValue();
+                    if (condition.matches(rarity, false, legendary) || condition.matches(rarity, true, legendary)) {
+                        if (!chanceItemStackEntry.getMatchingStack().isEmpty() && chanceItemStackEntry.getChance() > 0) {
+                            outputs.put(chanceItemStackEntry.getMatchingStack(), chanceItemStackEntry.getChance());
+                        }
                     }
-                }));
+                }
             }
         } catch (NullPointerException ignored) {}
 
-        CompoundTag nbt = toReturn.get().getOrCreateTagElement("display");
-        ListTag list = nbt.getList("Lore", 8);
-        MutableComponent chanceLabel = new TextComponent("Chance: ");
+        List<ItemStack> out = new ArrayList<>();
+        for (Map.Entry<ItemStack, Float> output: outputs.entrySet()) {
+            ItemStack outStack = output.getKey();
+            CompoundTag nbt = outStack.getOrCreateTagElement("display");
+            ListTag list = nbt.getList("Lore", 8);
+            MutableComponent chanceLabel = new TextComponent("Chance: ");
 
-        chanceLabel.append(String.format("%.0f", chance.get() * 100));
-        chanceLabel.append("%");
-        list.add(StringTag.valueOf(Component.Serializer.toJson(chanceLabel.withStyle(ChatFormatting.YELLOW))));
+            chanceLabel.append(String.format("%.0f", output.getValue() * 100));
+            chanceLabel.append("%");
+            list.add(StringTag.valueOf(Component.Serializer.toJson(chanceLabel.withStyle(ChatFormatting.YELLOW))));
 
-        if (entry.getMinCount() != entry.getMaxCount()) {
-            MutableComponent countLabel = new TextComponent("Count: ");
-            countLabel.append(entry.getMinCount() + " - " + entry.getMaxCount());
-            list.add(StringTag.valueOf(Component.Serializer.toJson(countLabel)));
+            if (entry.getMinCount() != entry.getMaxCount()) {
+                MutableComponent countLabel = new TextComponent("Count: ");
+                countLabel.append(entry.getMinCount() + " - " + entry.getMaxCount());
+                list.add(StringTag.valueOf(Component.Serializer.toJson(countLabel)));
+            }
+            nbt.put("Lore", list);
+            out.add(outStack);
         }
-        nbt.put("Lore", list);
-        return chance.get() == 0f ? ItemStack.EMPTY : toReturn.get();
+
+        return out;
     }
 
-    public static List<ItemStack> generatePieceStack(VaultGearRarity rarity) {
+    public static List<ItemStack> generatePieceStack(VaultGearRarity rarity, boolean legendary) {
         List<ItemStack> toReturn = new ArrayList<>();
         ITag<Item> vaultGear = Objects.requireNonNull(ForgeRegistries.ITEMS.tags()).getTag(ModItemTags.VAULT_GEAR);
         for (Item gear : vaultGear) {
@@ -338,6 +366,8 @@ public class JEIRecipeProvider {
 
             AttributeGearData data = AttributeGearData.read(itemStack);
             data.createOrReplaceAttributeValue(ModGearAttributes.GEAR_ROLL_TYPE, rollType);
+            data.createOrReplaceAttributeValue(ModGearAttributes.IS_LEGENDARY, legendary);
+
             data.write(itemStack);
 
             toReturn.add(itemStack);
@@ -441,24 +471,64 @@ public class JEIRecipeProvider {
         return is;
     }
 
-    public static <T extends AbstractStatueLootConfig> List<LabeledLootInfo> getStatueLoot(T lootConfig) {
-        List<LabeledLootInfo> toReturn = new ArrayList<>();
-        List<ItemStack> items = new ArrayList<>();
-        int interval = lootConfig.getInterval();
-        int minCount = lootConfig.getRollRange().getMin();
-        int maxCount = lootConfig.getRollRange().getMax();
-        int totalWeight = lootConfig.getDrops().getTotalWeight();
-        lootConfig.getDrops().forEach((product, weight) ->
-            items.add(formatItemStack(product.generateItemStack(), product.amountMin, product.amountMax, weight.intValue(), totalWeight)));
-        toReturn.add(LabeledLootInfo.of(items,
-                new TextComponent("Interval: " + interval),
-                new TextComponent("Count: " + minCount + " - " + maxCount)
-        ));
-        return toReturn;
+    protected static List<LabeledLootInfo> getChampionLoot() {
+
+        List<LabeledLootInfo> lootInfos = new ArrayList<>();
+        for (LegacyLootTablesConfig.Level lvlEntry : ((AccessorLegacyLootTablesConfig)ModConfigs.LOOT_TABLES).getLEVELS()) {
+            LootTable table = VaultRegistry.LOOT_TABLE.getKey(lvlEntry.CHAMPION).get(Version.latest());
+            List<ItemStack> itemStacks = new ArrayList<>();
+            int idx = 1;
+            for (LootTable.Entry entry: table.getEntries()) {
+                itemStacks.addAll(processLootTableEntry(entry, "Roll #" + idx + " ("+(entry.getRoll().getMin() == entry.getRoll().getMax() ? "" :entry.getRoll().getMin()+"x-")+entry.getRoll().getMax()+"x)"));
+                idx++;
+            }
+            lootInfos.add(LabeledLootInfo.of(itemStacks, new TextComponent("Level "+lvlEntry.getLevel()+"+") , null));
+        }
+
+        return lootInfos;
     }
 
-    private static ItemStack formatItemStack(ItemStack item, int amountMin, int amountMax, double weight, double totalWeight, @Nullable Integer amount) {
+    private static List<ItemStack> processLootTableEntry(LootTable.Entry entry, @Nullable String rollText) {
+        List<ItemStack> itemStacks = new ArrayList<>();
+        LootPool pool = entry.getPool();
+        List<ItemStack>  loot = processLootPool(pool, rollText,1d);
+        itemStacks.addAll(loot);
+        return itemStacks;
+    }
+
+    private static List<ItemStack> processLootPool(LootPool pool, String rollText, Double weightMultiplier) {
+        List<ItemStack> stacks = new ArrayList<>();
+        iskallia.vault.core.util.WeightedList<Object> children = pool.getChildren();
+        for (Map.Entry<Object, Double> entry : children.entrySet()) {
+            Object k = entry.getKey();
+            Double weight = entry.getValue();
+            if (k instanceof LootPool lootpool) {
+                List<ItemStack> nestedStacks = processLootPool(lootpool, rollText, weight / children.getTotalWeight());
+                stacks.addAll(nestedStacks);
+            }
+            if (k instanceof ItemLootEntry lootEntry) {
+                ItemStack is = new ItemStack(lootEntry.getItem());
+                CompoundTag nbt = lootEntry.getNbt();
+                if (nbt != null) {
+                    is.setTag(nbt.copy());
+                }
+                is = formatItemStack(is, lootEntry.getCount().getMin(), lootEntry.getCount().getMax(), weightMultiplier * weight, children.getTotalWeight(), null, rollText);
+                stacks.add(is);
+            }
+        }
+        return stacks;
+    }
+
+    protected static ItemStack formatItemStack(ItemStack item, int amountMin, int amountMax, double weight, double totalWeight, @Nullable Integer amount) {
+        return formatItemStack(item, amountMin, amountMax, weight, totalWeight, amount, null);
+    }
+
+    private static ItemStack formatItemStack(ItemStack item, int amountMin, int amountMax, double weight, double totalWeight, @Nullable Integer amount, @Nullable String rollText) {
         ItemStack result = item.copy();
+        if (item.isEmpty()) {
+            result = new ItemStack(Items.BARRIER);
+            result.setHoverName(new TextComponent("Nothing"));
+        }
         result.setCount(amount == null ? amountMax : amount);
         double chance =  weight / totalWeight * 100;
         CompoundTag nbt = result.getOrCreateTagElement("display");
@@ -471,6 +541,10 @@ public class JEIRecipeProvider {
             MutableComponent countLabel = new TextComponent(amount == null ? "Count: " : "Cost: ");
             countLabel.append(amountMin + " - " + amountMax);
             list.add(StringTag.valueOf(Component.Serializer.toJson(countLabel)));
+        }
+        if (rollText != null) {
+            MutableComponent rollLabel = new TextComponent(rollText);
+            list.add(StringTag.valueOf(Component.Serializer.toJson(rollLabel.withStyle(ChatFormatting.DARK_AQUA))));
         }
         nbt.put("Lore", list);
         return result;
