@@ -9,26 +9,8 @@ import java.util.List;
 
 public record LabeledLootInfo(List<List<ItemStack>> itemStackList, Component label, @Nullable Component line2) {
 
-    public LabeledLootInfo(List<List<ItemStack>> itemStackList, Component label, Component line2) {
-        this.itemStackList = itemStackList;
-        this.label = label;
-        this.line2 = line2;
-    }
-
     public LabeledLootInfo(List<List<ItemStack>> itemStackList, Component label) {
         this(itemStackList, label, null);
-    }
-
-    public List<List<ItemStack>> itemStackList() {
-        return this.itemStackList;
-    }
-
-    public Component label() {
-        return this.label;
-    }
-
-    public Component line2() {
-        return this.line2;
     }
 
     public static LabeledLootInfo of(List<ItemStack> itemStackList, Component label, @Nullable Component label2) {

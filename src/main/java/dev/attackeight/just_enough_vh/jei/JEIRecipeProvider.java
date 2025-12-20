@@ -1,10 +1,6 @@
 package dev.attackeight.just_enough_vh.jei;
 
 import dev.attackeight.just_enough_vh.JustEnoughVH;
-import dev.attackeight.just_enough_vh.mixin.AccessorLegacyLootTablesConfig;
-import dev.attackeight.just_enough_vh.mixin.AccessorLootInfoConfigLootInfo;
-import dev.attackeight.just_enough_vh.mixin.AccessorVaultRecyclerConfig;
-import dev.attackeight.just_enough_vh.mixin.raid.*;
 import iskallia.vault.VaultMod;
 import iskallia.vault.config.*;
 import iskallia.vault.block.PlaceholderBlock;
@@ -47,8 +43,10 @@ import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.tags.ITag;
+import iskallia.vault.core.vault.challenge.action.PoolChallengeAction.Config.LevelPool;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -79,7 +77,7 @@ public class JEIRecipeProvider {
     public static List<LabeledLootInfo> labelDefaultLootInfo(ResourceLocation location) {
         List<LabeledLootInfo> toReturn = new ArrayList<>();
         Set<ResourceLocation> lootTableKeys = getLootTableKeysForLootInfoGroup(location);
-        AccessorLootInfoConfigLootInfo infoConfigLootInfo = (AccessorLootInfoConfigLootInfo)ModConfigs.LOOT_INFO_CONFIG.getLootInfoMap().get(location);
+        LootInfoConfig.LootInfo infoConfigLootInfo = ModConfigs.LOOT_INFO_CONFIG.getLootInfoMap().get(location);
         lootTableKeys.forEach(lootTable -> {
             List<ItemStack> itemStacks = new ArrayList<>();
             LootTable lootTable1 = VaultRegistry.LOOT_TABLE.getKey(lootTable).get(Version.latest());
@@ -89,7 +87,7 @@ public class JEIRecipeProvider {
                 itemStacks.addAll(processLootTableEntry(entry, "Roll #" + idx + " ("+(entry.getRoll().getMin() == entry.getRoll().getMax() ? "" :entry.getRoll().getMin()+"x-")+entry.getRoll().getMax()+"x)"));
                 idx++;
             }
-            Component label = new TextComponent("Level: " + infoConfigLootInfo.getLootTableMap().get(lootTable).getLevel() + "+");
+            Component label = new TextComponent("Level: " + infoConfigLootInfo.lootTableKeys.get(lootTable).getLevel() + "+");
             toReturn.add(LabeledLootInfo.of(itemStacks, label, null));
         });
 
@@ -247,7 +245,7 @@ public class JEIRecipeProvider {
     public static List<RecyclerRecipe> getRecyclerRecipes() {
         List<RecyclerRecipe> toReturn = new ArrayList<>();
         VaultRecyclerConfig config = ModConfigs.VAULT_RECYCLER;
-        Map<ResourceLocation, VaultRecyclerConfig.RecyclerOutput> output = ((AccessorVaultRecyclerConfig)config).getRecyclingOutput();
+        Map<ResourceLocation, VaultRecyclerConfig.RecyclerOutput> output = config.recyclingOutput;
         VaultRecyclerConfig.RecyclerOutput gearOutput = output.get(VaultMod.id("gear"));
 
         // non legendary gear
@@ -280,7 +278,7 @@ public class JEIRecipeProvider {
             if (recEntry.getKey().equals(VaultMod.id("gear"))) {
                 continue;
             }
-            var item = ForgeRegistries.ITEMS.getValue(recEntry.getKey());
+            Item item = ForgeRegistries.ITEMS.getValue(recEntry.getKey());
             if (item instanceof RecyclableItem recItem && !vaultGearTag.contains(item)) {
                 VaultRecyclerConfig.RecyclerOutput itemOutput = recItem.getOutput(new ItemStack(item));
                 if (itemOutput == null) {
@@ -307,7 +305,7 @@ public class JEIRecipeProvider {
     public static List<ItemStack> addLoreToRecyclerOutput(ChanceItemStackEntry entry, @Nullable VaultGearRarity rarity, boolean legendary) {
         ItemStack stack = entry.getMatchingStack();
         float chance = entry.getChance();
-        var outputs = new LinkedHashMap<ItemStack, Float>(); // insertion order
+        LinkedHashMap<ItemStack, Float> outputs = new LinkedHashMap<>(); // insertion order
         if (rarity != null && chance < 1f) {
             chance += ModConfigs.VAULT_RECYCLER.getAdditionalOutputRarityChance(rarity);
         }
@@ -318,8 +316,8 @@ public class JEIRecipeProvider {
         try {
             if (entry instanceof ConditionalChanceItemStackEntry ccise) {
                 for (var condOut : ccise.getConditionalOutputs().entrySet()) {
-                    var condition = condOut.getKey();
-                    var chanceItemStackEntry =  condOut.getValue();
+                    ConditionalChanceItemStackEntry.Condition condition = condOut.getKey();
+                    ChanceItemStackEntry chanceItemStackEntry =  condOut.getValue();
                     if (condition.matches(rarity, false, legendary) || condition.matches(rarity, true, legendary)) {
                         if (!chanceItemStackEntry.getMatchingStack().isEmpty() && chanceItemStackEntry.getChance() > 0) {
                             outputs.put(chanceItemStackEntry.getMatchingStack(), chanceItemStackEntry.getChance());
@@ -355,6 +353,7 @@ public class JEIRecipeProvider {
     public static List<ItemStack> generatePieceStack(VaultGearRarity rarity, boolean legendary) {
         List<ItemStack> toReturn = new ArrayList<>();
         ITag<Item> vaultGear = Objects.requireNonNull(ForgeRegistries.ITEMS.tags()).getTag(ModItemTags.VAULT_GEAR);
+
         for (Item gear : vaultGear) {
             ItemStack itemStack = new ItemStack(gear);
 
@@ -372,22 +371,21 @@ public class JEIRecipeProvider {
 
             toReturn.add(itemStack);
         }
+
         return toReturn;
     }
 
-    @SuppressWarnings("unchecked")
     protected static List<LabeledLootInfo> getChallengeActionLoot() {
         List<LabeledLootInfo> lootInfo = new ArrayList<>();
-        Map<String, ChallengeAction<?>> raidValues = ((ChallengeActionsConfigAccessor)ModConfigs.CHALLENGE_ACTIONS).getValues();
+        Map<String, ChallengeAction<?>> raidValues = ModConfigs.CHALLENGE_ACTIONS.values;
 
         for (var rv : raidValues.entrySet()) {
             String lootTableName = rv.getKey();
             ChallengeAction.Config config = rv.getValue().getConfig();
-            if (config instanceof PoolChallengeAction.Config) {
-                var poolConfig = (PoolChallengeActionConfigAccessor) config;
-                LevelEntryList<LevelEntryList.ILevelEntry> pools = poolConfig.getPools();
-                for (LevelEntryList.ILevelEntry levelPool : pools) {
-                    var rewardItems = getFromChallengeActionPool(((LevelPoolAccessor) levelPool).getPool());
+            if (config instanceof PoolChallengeAction.Config poolConfig) {
+                LevelEntryList<LevelPool> pools = poolConfig.pools;
+                for (LevelPool levelPool : pools) {
+                    List<ItemStack> rewardItems = getFromChallengeActionPool(levelPool.pool);
                     lootInfo.add(LabeledLootInfo.of(rewardItems,
                             new TextComponent(lootTableName + " Level: " + levelPool.getLevel() + "+"),null)
                     );
@@ -407,21 +405,19 @@ public class JEIRecipeProvider {
 
     protected static ItemStack createChallengeActionStack(ChallengeAction<?> challengeAction, double weight, double totalWeight) {
         ChallengeAction.Config config = challengeAction.getConfig();
-        if (config instanceof ReferenceChallengeAction.Config) {
-            var refConfig = (ReferenceChallengeActionConfigAccessor)config;
-            var derefConfig = ((ChallengeActionsConfigAccessor) ModConfigs.CHALLENGE_ACTIONS).getValues().get(refConfig.getPath());
-            return createChallengeActionStack(derefConfig, weight, totalWeight);
+        if (config instanceof ReferenceChallengeAction.Config refConfig) {
+            return createChallengeActionStack(ModConfigs.CHALLENGE_ACTIONS.values.get(refConfig.path), weight, totalWeight);
         }
-        if (config instanceof FloatingItemRewardChallengeAction.Config) {
-            var floatConfig = (FloatingItemRewardChallengeActionConfigAccessor)config;
-            var is = formatItemStack(floatConfig.getItem(), floatConfig.getItem().getCount(), floatConfig.getItem().getCount(), weight, totalWeight);
-            is.setHoverName(new TextComponent(floatConfig.getName()));
+
+        if (config instanceof FloatingItemRewardChallengeAction.Config floatConfig) {
+            ItemStack is = formatItemStack(floatConfig.item, floatConfig.item.getCount(), floatConfig.item.getCount(), weight, totalWeight);
+            is.setHoverName(new TextComponent(floatConfig.name));
             return is;
         }
-        if (config instanceof TileRewardChallengeAction.Config) {
-            var tileConfig = (TileRewardChallengeConfigAccessor)config;
+
+        if (config instanceof TileRewardChallengeAction.Config tileConfig) {
             Block block = Blocks.BARRIER;
-            var state = tileConfig.getTile().getState().asWhole().orElse(null);
+            BlockState state = tileConfig.tile.getState().asWhole().orElse(null);
             if (state != null){
                 block = state.getBlock();
                 if (block == ModBlocks.PLACEHOLDER){
@@ -437,17 +433,17 @@ public class JEIRecipeProvider {
                     }
                 }
             }
-            var is = formatItemStack(block.asItem().getDefaultInstance(), tileConfig.getCount(), tileConfig.getCount(), weight, totalWeight);
-            is.setHoverName(new TextComponent(tileConfig.getName()));
+            ItemStack is = formatItemStack(block.asItem().getDefaultInstance(), tileConfig.count, tileConfig.count, weight, totalWeight);
+            is.setHoverName(new TextComponent(tileConfig.name));
             return is;
         }
-        if (config instanceof VanillaAttributeChallengeAction.Config) {
-            var vanillaAttrConfig = (VanillaAttributeChallengeActionConfigAccessor) config;
-            AttributeModifier.Operation operation = vanillaAttrConfig.getOperation();
-            double amount = vanillaAttrConfig.getAmount().get(0).getMin(); // this is a range, but from configs it doesn't seem to be used
-            String name = vanillaAttrConfig.getName();
-            Attribute attribute = vanillaAttrConfig.getAttribute();
-            int textColor = ((ChallengeActionConfigAccessor)config).getTextColor();
+
+        if (config instanceof VanillaAttributeChallengeAction.Config vaca) {
+            AttributeModifier.Operation operation = vaca.operation;
+            double amount = vaca.amount.get(0).getMin(); // this is a range, but from configs it doesn't seem to be used
+            String name = vaca.name;
+            Attribute attribute = vaca.attribute;
+            int textColor = vaca.textColor;
             Component prefix = new TextComponent(switch (operation) {
                 case ADDITION -> String.format("%+.0f", amount);
                 case MULTIPLY_BASE -> String.format("%+.0f%%", amount * 100.0);
@@ -456,25 +452,25 @@ public class JEIRecipeProvider {
             MutableComponent text = new TextComponent("").append(prefix);
             if (name == null) {
                 Component suffix = new TranslatableComponent(attribute.getDescriptionId());
-                text = text.append(config instanceof VanillaAttributeChallengeAction.Config ? " Mob " : " Player ").append(suffix);
+                text = text.append(" Mob ").append(suffix);
             } else {
                 text = text.append(" ").append(new TextComponent(name));
             }
-            var hover = text.setStyle(Style.EMPTY.withColor(textColor));
+            MutableComponent hover = text.setStyle(Style.EMPTY.withColor(textColor));
 
-            var is = formatItemStack(PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.EMPTY), 1, 1, weight, totalWeight);
+            ItemStack is = formatItemStack(PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.EMPTY), 1, 1, weight, totalWeight);
             is.setHoverName(hover);
             return is;
         }
-        var is =  formatItemStack(Blocks.BARRIER.asItem().getDefaultInstance(), 1, 1, weight, totalWeight);
+
+        ItemStack is =  formatItemStack(Blocks.BARRIER.asItem().getDefaultInstance(), 1, 1, weight, totalWeight);
         is.setHoverName(new TextComponent("ERR - UNSUPPORTED"));
         return is;
     }
 
     protected static List<LabeledLootInfo> getChampionLoot() {
-
         List<LabeledLootInfo> lootInfos = new ArrayList<>();
-        for (LegacyLootTablesConfig.Level lvlEntry : ((AccessorLegacyLootTablesConfig)ModConfigs.LOOT_TABLES).getLEVELS()) {
+        for (LegacyLootTablesConfig.Level lvlEntry : ModConfigs.LOOT_TABLES.LEVELS) {
             LootTable table = VaultRegistry.LOOT_TABLE.getKey(lvlEntry.CHAMPION).get(Version.latest());
             List<ItemStack> itemStacks = new ArrayList<>();
             int idx = 1;
