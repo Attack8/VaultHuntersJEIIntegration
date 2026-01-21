@@ -80,3 +80,6 @@ Just Enough VH v1.7
 Just Enough VH v1.7.1
  - Update to Vault Hunters 3.20.2
  - Backend code improvements
+
+Just Enough VH v1.8
+ - Add Deck Unlock Tasks to Tooltip

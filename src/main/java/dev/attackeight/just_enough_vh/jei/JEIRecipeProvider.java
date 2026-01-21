@@ -26,6 +26,7 @@ import iskallia.vault.init.ModGearAttributes;
 import iskallia.vault.integration.jei.lootinfo.LootInfo;
 import iskallia.vault.item.gear.RecyclableItem;
 import iskallia.vault.tags.ModItemTags;
+import iskallia.vault.task.ProgressConfiguredTask;
 import iskallia.vault.util.data.WeightedList;
 import mezz.jei.api.recipe.RecipeType;
 import net.minecraft.ChatFormatting;
@@ -482,6 +483,33 @@ public class JEIRecipeProvider {
         }
 
         return lootInfos;
+    }
+
+    public static List<ForgeItem> getDeckRecipes() {
+        List<ForgeItem> recipes = new ArrayList<>();
+        ModConfigs.DECK_CRAFTING_RECIPES.getConfigRecipes().forEach(b -> {
+            ItemStack output = b.makeRecipe().getDisplayOutput(100);
+
+            if (b.getDiscoveryTask() != null) {
+                CompoundTag nbt = output.getOrCreateTagElement("display");
+                ListTag list = nbt.getList("Lore", 8);
+                MutableComponent chanceLabel = new TextComponent("Unlock Task: ");
+
+                chanceLabel.append(b.getDiscoveryTask().getRenderer().writeJson().get().getAsJsonObject("title").get("text").getAsString());
+
+                if (b.getDiscoveryTask() instanceof ProgressConfiguredTask<?,?> pgt) {
+                    chanceLabel.append(" (" + pgt.getCounter().writeJson().get().getAsJsonObject("target").get("count").getAsInt() + ")");
+                }
+
+                list.add(StringTag.valueOf(Component.Serializer.toJson(chanceLabel.withStyle(ChatFormatting.YELLOW))));
+
+                nbt.put("Lore", list);
+            }
+
+            recipes.add(new ForgeItem(b.makeRecipe().getInputs(), output));
+
+        });
+        return recipes;
     }
 
     private static List<ItemStack> processLootTableEntry(LootTable.Entry entry, @Nullable String rollText) {

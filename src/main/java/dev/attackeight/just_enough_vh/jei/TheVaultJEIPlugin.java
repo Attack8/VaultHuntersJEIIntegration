@@ -66,8 +66,6 @@ public class TheVaultJEIPlugin implements IModPlugin {
     public static final RecipeType<LabeledLootInfo> VA_MEGA_GIFT_STATUE = RecipeType.create(JustEnoughVH.ID, "va_mega_gift_statue", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> VA_VAULT_STATUE = RecipeType.create(JustEnoughVH.ID, "va_vault_statue", LabeledLootInfo.class);
 
-    public TheVaultJEIPlugin() {}
-
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.CATALYST_INFUSION_TABLE), CATALYSTS);
@@ -146,7 +144,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipes(TRINKETS, getForgeRecipes(ModConfigs.TRINKET_RECIPES));
         registration.addRecipes(INSCRIPTIONS, getForgeRecipes(ModConfigs.INSCRIPTION_RECIPES));
         registration.addRecipes(JEWEL_CRAFTING, getForgeRecipes(ModConfigs.JEWEL_CRAFTING_RECIPES));
-        registration.addRecipes(DECK_CRAFTING, getForgeRecipes(ModConfigs.DECK_CRAFTING_RECIPES));
+        registration.addRecipes(DECK_CRAFTING, getDeckRecipes());
         registration.addRecipes(MYSTERY_EGG, getFromPool(ModConfigs.MYSTERY_EGG.POOL));
         registration.addRecipes(HOSTILE_EGG, getFromPool(ModConfigs.MYSTERY_HOSTILE_EGG.POOL));
         registration.addRecipes(BLACK_MARKET, getBlackMarketLoot());
