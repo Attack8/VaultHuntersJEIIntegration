@@ -11,12 +11,19 @@ import iskallia.vault.config.entry.LevelEntryList;
 import iskallia.vault.config.entry.recipe.ConfigForgeRecipe;
 import iskallia.vault.config.entry.vending.ProductEntry;
 import iskallia.vault.config.recipe.ForgeRecipesConfig;
+import iskallia.vault.core.data.key.PaletteKey;
 import iskallia.vault.core.vault.challenge.action.*;
 import iskallia.vault.core.Version;
 import iskallia.vault.core.vault.VaultRegistry;
+import iskallia.vault.core.world.data.entity.PartialCompoundNbt;
+import iskallia.vault.core.world.data.tile.PartialTile;
 import iskallia.vault.core.world.loot.LootPool;
 import iskallia.vault.core.world.loot.LootTable;
 import iskallia.vault.core.world.loot.entry.ItemLootEntry;
+import iskallia.vault.core.world.processor.Palette;
+import iskallia.vault.core.world.processor.tile.TileProcessor;
+import iskallia.vault.core.world.processor.tile.WeightedTileProcessor;
+import iskallia.vault.entity.entity.DragonTreasureGoblinEntity;
 import iskallia.vault.gear.VaultGearRarity;
 import iskallia.vault.gear.crafting.recipe.VaultForgeRecipe;
 import iskallia.vault.gear.data.AttributeGearData;
@@ -33,6 +40,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -48,6 +56,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.tags.ITag;
 import iskallia.vault.core.vault.challenge.action.PoolChallengeAction.Config.LevelPool;
+import org.apache.commons.lang3.text.WordUtils;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -381,14 +390,15 @@ public class JEIRecipeProvider {
         Map<String, ChallengeAction<?>> raidValues = ModConfigs.CHALLENGE_ACTIONS.values;
 
         for (var rv : raidValues.entrySet()) {
-            String lootTableName = rv.getKey();
+            @SuppressWarnings("deprecation")
+            String lootTableName = WordUtils.capitalize(rv.getKey().replace("_", " "));
             ChallengeAction.Config config = rv.getValue().getConfig();
             if (config instanceof PoolChallengeAction.Config poolConfig) {
                 LevelEntryList<LevelPool> pools = poolConfig.pools;
                 for (LevelPool levelPool : pools) {
                     List<ItemStack> rewardItems = getFromChallengeActionPool(levelPool.pool);
                     lootInfo.add(LabeledLootInfo.of(rewardItems,
-                            new TextComponent(lootTableName + " Level: " + levelPool.getLevel() + "+"),null)
+                            new TextComponent(lootTableName + " - Level: " + levelPool.getLevel() + "+"),null)
                     );
                 }
             }
@@ -471,19 +481,95 @@ public class JEIRecipeProvider {
 
     protected static List<LabeledLootInfo> getChampionLoot() {
         List<LabeledLootInfo> lootInfos = new ArrayList<>();
+        String lastTable = null;
         for (LegacyLootTablesConfig.Level lvlEntry : ModConfigs.LOOT_TABLES.LEVELS) {
-            LootTable table = VaultRegistry.LOOT_TABLE.getKey(lvlEntry.CHAMPION).get(Version.latest());
-            List<ItemStack> itemStacks = new ArrayList<>();
-            int idx = 1;
-            for (LootTable.Entry entry: table.getEntries()) {
-                itemStacks.addAll(processLootTableEntry(entry, "Roll #" + idx + " ("+(entry.getRoll().getMin() == entry.getRoll().getMax() ? "" :entry.getRoll().getMin()+"x-")+entry.getRoll().getMax()+"x)"));
-                idx++;
+            LootTable lootTable = VaultRegistry.LOOT_TABLE.getKey(lvlEntry.CHAMPION).get(Version.latest());
+            if (lastTable != null && lastTable.equals(lootTable.getPath())) {
+                continue;
             }
-            lootInfos.add(LabeledLootInfo.of(itemStacks, new TextComponent("Level "+lvlEntry.getLevel()+"+") , null));
+            lastTable = lootTable.getPath();
+            lootInfos.add(LabeledLootInfo.of(processLegacyLootTable(lootTable), new TextComponent("Level "+lvlEntry.getLevel()+"+") , null));
         }
 
         return lootInfos;
     }
+
+    protected static List<LabeledLootInfo> getDragonGoblinDrops() {
+        List<LabeledLootInfo> lootInfos = new ArrayList<>();
+        for (var goblinInfo: getGoblinInfoFromPalette("the_vault:dragon/base").entrySet()) {
+            TextComponent typeCompoment = new TextComponent(goblinInfo.getKey());
+            try {
+                typeCompoment.withStyle(Style.EMPTY.withColor(DragonTreasureGoblinEntity.GoblinType.valueOf(goblinInfo.getKey()).getColour()));
+            } catch (IllegalArgumentException ignored) {/* config has invalid enum constant - no color */}
+
+            Component label = new TextComponent("Goblin Type: ").append(typeCompoment);
+            LootTable lootTable = VaultRegistry.LOOT_TABLE.getKey(goblinInfo.getValue()).get(Version.latest());
+            lootInfos.add(LabeledLootInfo.of(processLegacyLootTable(lootTable), label, null));
+        }
+
+
+        return lootInfos;
+    }
+
+    /** returns GoblinType => goblin drop loot table key mapping */
+    private static Map<String, String> getGoblinInfoFromPalette(String paletteId) {
+        PaletteKey key = VaultRegistry.PALETTE.getKey(paletteId);
+        if (key == null) return Collections.emptyMap();
+        Palette palette = key.get(Version.latest());
+        List<TileProcessor> processors = palette.getTileProcessors();
+        LinkedHashMap<String, String> goblins = new LinkedHashMap<>();
+        for (TileProcessor tp : processors) {
+            if (tp instanceof WeightedTileProcessor wtp) {
+                // palette processor responsible for goblin types
+                for (PartialTile outputTile : wtp.getOutput().keySet()) {
+                    PartialCompoundNbt partialOutputNbt = outputTile.getEntity();
+                    if (partialOutputNbt == null){
+                        continue;
+                    }
+                    CompoundTag outputNbt = partialOutputNbt.asWhole().orElse(null);
+                    if (outputNbt == null) {
+                        continue;
+                    }
+                    ListTag variantList = outputNbt.getList("goblinVariants", Tag.TAG_COMPOUND);
+                    for (int i = 0; i < variantList.size(); i++) {
+                        CompoundTag variant = variantList.getCompound(i).getCompound("variant");
+                        String goblinType = variant.getCompound("entityNbt").getString("GoblinType");
+                        String lootTable = variant.getString("dropLootTable");
+                        goblins.put(goblinType, lootTable);
+                    }
+                }
+            }
+        }
+        return goblins;
+    }
+
+    protected static List<LabeledLootInfo> getRuneRewards() {
+        List<LabeledLootInfo> lootInfos = new ArrayList<>();
+        String lastTable = null;
+        for (LegacyLootTablesConfig.Level lvlEntry : ModConfigs.LOOT_TABLES.LEVELS) {
+            LootTable lootTable = VaultRegistry.LOOT_TABLE.getKey(lvlEntry.RUNES_LOOT).get(Version.latest());
+            if (lastTable != null && lastTable.equals(lootTable.getPath())) {
+                continue;
+            }
+            lastTable = lootTable.getPath();
+            lootInfos.add(LabeledLootInfo.of(processLegacyLootTable(lootTable), new TextComponent("Level "+lvlEntry.getLevel()+"+") , null));
+        }
+
+        return lootInfos;
+    }
+
+    protected static List<LabeledLootInfo> getRoyaleLoot() {
+        List<LabeledLootInfo> lootInfos = new ArrayList<>();
+        ModConfigs.ROYALE_LOOT.presets.forEach((lootTableId, weight) -> {
+            LootTable lootTable = VaultRegistry.LOOT_TABLE.getKey(lootTableId).get(Version.latest());
+            @SuppressWarnings("deprecation")
+            String name = WordUtils.capitalize(lootTableId.getPath().replace("_", " "));
+            lootInfos.add(LabeledLootInfo.of(processLegacyLootTable(lootTable), new TextComponent(name), null));
+        });
+
+        return lootInfos;
+    }
+
 
     public static List<ForgeItem> getDeckRecipes() {
         List<ForgeItem> recipes = new ArrayList<>();
@@ -538,6 +624,17 @@ public class JEIRecipeProvider {
         }
         return stacks;
     }
+
+    private static List<ItemStack> processLegacyLootTable(LootTable table) {
+        List<ItemStack> itemStacks = new ArrayList<>();
+        int idx = 1;
+        for (LootTable.Entry entry: table.getEntries()) {
+            itemStacks.addAll(processLootTableEntry(entry, "Roll #" + idx + " ("+(entry.getRoll().getMin() == entry.getRoll().getMax() ? "" :entry.getRoll().getMin()+"x-")+entry.getRoll().getMax()+"x)"));
+            idx++;
+        }
+        return itemStacks;
+    }
+
 
     protected static ItemStack formatItemStack(ItemStack item, int amountMin, int amountMax, double weight, double totalWeight, @Nullable Integer amount) {
         return formatItemStack(item, amountMin, amountMax, weight, totalWeight, amount, null);

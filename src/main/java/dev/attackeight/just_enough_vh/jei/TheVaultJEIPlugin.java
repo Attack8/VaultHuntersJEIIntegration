@@ -11,6 +11,7 @@ import iskallia.vault.init.ModItems;
 import iskallia.vault.integration.jei.lootinfo.LootInfo;
 import iskallia.vault.integration.jei.lootinfo.LootInfoGroupDefinitionRegistry;
 import iskallia.vault.integration.jei.lootinfo.LootInfoRecipeCategory;
+import iskallia.vault.item.data.InscriptionData;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.helpers.IGuiHelper;
@@ -54,6 +55,9 @@ public class TheVaultJEIPlugin implements IModPlugin {
     public static final RecipeType<LabeledLootInfo> BRAZIER_PILLAGE = RecipeType.create(JustEnoughVH.ID, "brazier_pillage", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> CHALLENGE_ACTION_LOOT = RecipeType.create(JustEnoughVH.ID, "challenge_action_loot", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> CHAMPION_LOOT = RecipeType.create(JustEnoughVH.ID, "champion_loot", LabeledLootInfo.class);
+    public static final RecipeType<LabeledLootInfo> DRAGON_GOBLINS = RecipeType.create(JustEnoughVH.ID, "dragon_goblins", LabeledLootInfo.class);
+    public static final RecipeType<LabeledLootInfo> RUNE_REWARDS = RecipeType.create(JustEnoughVH.ID, "rune_rewards", LabeledLootInfo.class);
+    public static final RecipeType<LabeledLootInfo> ROYALE_LOOT = RecipeType.create(JustEnoughVH.ID, "royale_loot", LabeledLootInfo.class);
 
     // Optional
     public static final RecipeType<LootInfo> MYSTERY_BOX = RecipeType.create(JustEnoughVH.ID, "mystery_box", LootInfo.class);
@@ -86,6 +90,9 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.RAID_CONTROLLER), CHALLENGE_ACTION_LOOT);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.ELITE_CONTROLLER), CHALLENGE_ACTION_LOOT);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.X_MARK_CONTROLLER), CHALLENGE_ACTION_LOOT);
+        registration.addRecipeCatalyst(new ItemStack(ModItems.INSCRIPTION), DRAGON_GOBLINS);
+        registration.addRecipeCatalyst(new ItemStack(ModItems.BOSS_RUNE), RUNE_REWARDS);
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.ROYALE_CRATE), ROYALE_LOOT);
 
         LootInfoGroupDefinitionRegistry.get().forEach((location, groupDefinition) ->
                 registration.addRecipeCatalyst(groupDefinition.itemStack(), adapt(groupDefinition.recipeType())));
@@ -121,6 +128,8 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCategories(makeRecyclerCategory(guiHelper, VAULT_RECYCLER, ModBlocks.VAULT_RECYCLER));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, CHALLENGE_ACTION_LOOT, ModBlocks.RAID_CONTROLLER));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, CHAMPION_LOOT, ModItems.SCAVENGER_TREASURE_GOBLET, new TextComponent("Champion Loot")));
+        registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, RUNE_REWARDS, ModItems.BOSS_RUNE, new TextComponent("Rune Rewards")));
+        registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, ROYALE_LOOT, ModBlocks.ROYALE_CRATE, new TextComponent("Royale Loot")));
 
         LootInfoGroupDefinitionRegistry.get().forEach((location, groupDefinition) ->
                 registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper,
@@ -134,6 +143,11 @@ public class TheVaultJEIPlugin implements IModPlugin {
         if (JustEnoughVH.vaLoaded()) {
             VaultAdditionsJEIPlugin.registerStatueCategories(registration, guiHelper);
         }
+
+        ItemStack dragonInscription = new ItemStack(ModItems.INSCRIPTION);
+        InscriptionData dragonData = InscriptionData.from(dragonInscription); dragonData.setModel(7);
+        dragonData.write(dragonInscription);
+        registration.addRecipeCategories(new LabeledLootInfoRecipeCategory(guiHelper, DRAGON_GOBLINS, dragonInscription, new TextComponent("Goblin Drops"), OUTPUT));
     }
 
     @Override
@@ -155,6 +169,9 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipes(VAULT_RECYCLER, getRecyclerRecipes());
         registration.addRecipes(CHALLENGE_ACTION_LOOT, getChallengeActionLoot());
         registration.addRecipes(CHAMPION_LOOT, getChampionLoot());
+        registration.addRecipes(DRAGON_GOBLINS, getDragonGoblinDrops());
+        registration.addRecipes(RUNE_REWARDS, getRuneRewards());
+        registration.addRecipes(ROYALE_LOOT, getRoyaleLoot());
 
         LootInfoGroupDefinitionRegistry.get().forEach((location, groupDefinition) ->
             registration.addRecipes(adapt(groupDefinition.recipeType()), labelDefaultLootInfo(location)));
