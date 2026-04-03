@@ -42,6 +42,8 @@ public class TheVaultJEIPlugin implements IModPlugin {
     public static final RecipeType<ForgeItem> JEWEL_CRAFTING = RecipeType.create(JustEnoughVH.ID, "jewel_crafting", ForgeItem.class);
     public static final RecipeType<ForgeItem> DECK_CRAFTING = RecipeType.create(JustEnoughVH.ID, "deck_crafting", ForgeItem.class);
     public static final RecipeType<ForgeItem> AUGMENT_CRAFTING = RecipeType.create(JustEnoughVH.ID, "augment_crafting", ForgeItem.class);
+    public static final RecipeType<ForgeItem> COMPANION_RELIC = RecipeType.create(JustEnoughVH.ID, "companion_relic_crafting", ForgeItem.class);
+    public static final RecipeType<ForgeItem> COMPANION_TRAIL = RecipeType.create(JustEnoughVH.ID, "companion_trail_crafting", ForgeItem.class);
 
     public static final RecipeType<RecyclerRecipe> VAULT_RECYCLER = RecipeType.create(JustEnoughVH.ID, "vault_recycler", RecyclerRecipe.class);
 
@@ -163,6 +165,8 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipes(JEWEL_CRAFTING, getForgeRecipes(ModConfigs.JEWEL_CRAFTING_RECIPES));
         registration.addRecipes(DECK_CRAFTING, getDeckRecipes());
         registration.addRecipes(AUGMENT_CRAFTING, getAugmentRecipes());
+        registration.addRecipes(COMPANION_RELIC, getForgeRecipes(ModConfigs.COMPANION_RELIC_CRAFTING));
+        registration.addRecipes(COMPANION_TRAIL, getForgeRecipes(ModConfigs.COMPANION_TRAIL_CRAFTING));
         registration.addRecipes(MYSTERY_EGG, getFromPool(ModConfigs.MYSTERY_EGG.POOL));
         registration.addRecipes(HOSTILE_EGG, getFromPool(ModConfigs.MYSTERY_HOSTILE_EGG.POOL));
         registration.addRecipes(BLACK_MARKET, getBlackMarketLoot());
