@@ -5,7 +5,12 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "TheVaultJEI.refmap.json",
   "mixins": [
-    "IntegrationJEIMixin"
+    "accessors.DemandEntryAccessor",
+    "accessors.GreedCauldronAccessor",
+    "accessors.GreedTraderConfigAccessor",
+    "IntegrationJEIMixin",
+    "accessors.PlayerGreedTraderDataAccessor",
+    "accessors.TradeEntryAccessor"
   ],
   "client": [],
   "injectors": {

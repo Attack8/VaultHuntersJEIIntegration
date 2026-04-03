@@ -1,6 +1,7 @@
 package dev.attackeight.just_enough_vh.jei;
 
 import dev.attackeight.just_enough_vh.JustEnoughVH;
+import dev.attackeight.just_enough_vh.mixin.accessors.*;
 import iskallia.vault.VaultMod;
 import iskallia.vault.config.*;
 import iskallia.vault.block.PlaceholderBlock;
@@ -10,6 +11,7 @@ import iskallia.vault.config.entry.IntRangeEntry;
 import iskallia.vault.config.entry.LevelEntryList;
 import iskallia.vault.config.entry.recipe.ConfigForgeRecipe;
 import iskallia.vault.config.entry.vending.ProductEntry;
+import iskallia.vault.config.greed.GreedTraderConfig;
 import iskallia.vault.config.recipe.ForgeRecipesConfig;
 import iskallia.vault.core.data.key.PaletteKey;
 import iskallia.vault.core.vault.challenge.action.*;
@@ -36,6 +38,7 @@ import iskallia.vault.item.gear.RecyclableItem;
 import iskallia.vault.tags.ModItemTags;
 import iskallia.vault.task.ProgressConfiguredTask;
 import iskallia.vault.util.data.WeightedList;
+import iskallia.vault.world.data.PlayerGreedTraderData;
 import mezz.jei.api.recipe.RecipeType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
@@ -227,6 +230,21 @@ public class JEIRecipeProvider {
             lootInfo.put(minLevel, pool);
         });
         lootInfo.forEach((i, n) -> toReturn.addAll(n));
+        return toReturn;
+    }
+
+    public static List<LabeledLootInfo> getGreedCauldronIngredients() {
+        List<LabeledLootInfo> toReturn = new ArrayList<>();
+
+        var cauldronConfig = (GreedCauldronAccessor) ModConfigs.GREED_CAULDRON;
+
+        List<ItemStack> stacks = new ArrayList<>();
+        cauldronConfig.getDemands().forEach((demandEntry) -> {
+            var demandEntryA = (DemandEntryAccessor) demandEntry;
+            Item item = ForgeRegistries.ITEMS.getValue(ResourceLocation.parse(demandEntryA.getItem()));
+            stacks.add(formatItemStack(new ItemStack(item), demandEntryA.getMinAmount(), demandEntryA.getMaxAmount(), 1, cauldronConfig.getDemands().size()));
+        });
+        toReturn.add(LabeledLootInfo.of(stacks, new TextComponent("Greed Cauldron Ingredients"), new TextComponent(cauldronConfig.getGlobalCoinOutput() + " coin per submission")));
         return toReturn;
     }
 
@@ -618,6 +636,39 @@ public class JEIRecipeProvider {
         }
         return recipes;
     }
+
+    public static List<LabeledLootInfo> getGreedTrades() {
+        List<LabeledLootInfo> recipes = new ArrayList<>();
+
+        var rand = new Random();
+        Map<Integer, List<GreedTraderConfig.TradeEntry>> pools = ((GreedTraderConfigAccessor)ModConfigs.GREED_TRADER).getTierPools();
+        List<Integer> greedTiers = pools.keySet().stream().sorted().toList();
+        for (Integer greedTier : greedTiers) {
+            List<GreedTraderConfig.TradeEntry> availableEntries = pools.get(greedTier);
+            int totalWeight = availableEntries.stream().mapToInt(GreedTraderConfig.TradeEntry::getWeight).sum();
+            List<List<ItemStack>> stacks = new ArrayList<>();
+            for(GreedTraderConfig.TradeEntry entry : pools.get(greedTier)) {
+                List<ItemStack> randomRolls = new ArrayList<>();
+                int realMaxAmount = entry.getMinAmount() + Math.max(1, entry.getMaxAmount() - entry.getMinAmount() + 1); // wtf vh
+                var tradeEntryA = (TradeEntryAccessor) entry;
+                int realMaxCost = tradeEntryA.getMinCoinCost() + Math.max(1, tradeEntryA.getMaxCoinCost() - tradeEntryA.getMinCoinCost() + 1);
+                for (int i = 0; i < 10; i++) { // roll 10 items to make it obvious you can for different etchings and stuff
+                    PlayerGreedTraderData.TradeOffer offer = ((PlayerGreedTraderDataAccessor)new PlayerGreedTraderData()).callRollSingleOffer(entry, greedTier, ModConfigs.GREED_TRADER, rand, 100);
+                    if (offer != null) {
+                        randomRolls.add(formatItemStack(offer.createItemStack(), entry.getMinAmount(), realMaxAmount, entry.getWeight(), totalWeight, null, "Cost: " + tradeEntryA.getMinCoinCost() + "-" + realMaxCost));
+                    }
+                }
+                if (!randomRolls.isEmpty()) {
+                    stacks.add(randomRolls);
+                }
+            }
+            recipes.add(new LabeledLootInfo(stacks, new TextComponent("Greed Trade - Greed tier " + greedTier + "+"), new TextComponent("lower tier item can also appear").withStyle(ChatFormatting.DARK_GRAY)));
+        }
+
+
+        return recipes;
+    }
+
 
     private static List<ItemStack> processLootTableEntry(LootTable.Entry entry, @Nullable String rollText) {
         return processLootPool(entry.getPool(), rollText,1d);

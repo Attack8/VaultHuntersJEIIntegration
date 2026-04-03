@@ -61,6 +61,10 @@ public class TheVaultJEIPlugin implements IModPlugin {
     public static final RecipeType<LabeledLootInfo> DRAGON_GOBLINS = RecipeType.create(JustEnoughVH.ID, "dragon_goblins", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> RUNE_REWARDS = RecipeType.create(JustEnoughVH.ID, "rune_rewards", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> ROYALE_LOOT = RecipeType.create(JustEnoughVH.ID, "royale_loot", LabeledLootInfo.class);
+    public static final RecipeType<LabeledLootInfo> GREED_CAULDRON_INGREDIENTS = RecipeType.create(JustEnoughVH.ID, "greed_cauldron_ingredients", LabeledLootInfo.class);
+    public static final RecipeType<LabeledLootInfo> GREED_TRADER = RecipeType.create(JustEnoughVH.ID, "greed_trader", LabeledLootInfo.class);
+
+
 
     // Optional
     public static final RecipeType<LootInfo> MYSTERY_BOX = RecipeType.create(JustEnoughVH.ID, "mystery_box", LootInfo.class);
@@ -97,6 +101,8 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ModItems.INSCRIPTION), DRAGON_GOBLINS);
         registration.addRecipeCatalyst(new ItemStack(ModItems.BOSS_RUNE), RUNE_REWARDS);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.ROYALE_CRATE), ROYALE_LOOT);
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.GREED_CAULDRON), GREED_CAULDRON_INGREDIENTS);
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.GREEDY_ANCHOR), GREED_TRADER);
 
         LootInfoGroupDefinitionRegistry.get().forEach((location, groupDefinition) ->
                 registration.addRecipeCatalyst(groupDefinition.itemStack(), adapt(groupDefinition.recipeType())));
@@ -123,6 +129,8 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCategories(makeForgeItemCategory(guiHelper, JEWEL_CRAFTING, ModBlocks.JEWEL_CRAFTING_TABLE));
         registration.addRecipeCategories(makeForgeItemCategory(guiHelper, DECK_CRAFTING, ModBlocks.DECK_CRAFTING_STATION));
         registration.addRecipeCategories(makeForgeItemCategory(guiHelper, AUGMENT_CRAFTING, ModBlocks.AUGMENT_STATION));
+        registration.addRecipeCategories(makeForgeItemCategory(guiHelper, COMPANION_RELIC, ModBlocks.RELIC_CRAFTING_TABLE));
+        registration.addRecipeCategories(makeForgeItemCategory(guiHelper, COMPANION_TRAIL, ModBlocks.RELIC_CRAFTING_TABLE));
         registration.addRecipeCategories(makeLootInfoCategory(guiHelper, MYSTERY_EGG, ModItems.MYSTERY_EGG));
         registration.addRecipeCategories(makeLootInfoCategory(guiHelper, HOSTILE_EGG, ModItems.MYSTERY_HOSTILE_EGG));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, BLACK_MARKET, ModBlocks.BLACK_MARKET));
@@ -135,6 +143,8 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, CHAMPION_LOOT, ModItems.SCAVENGER_TREASURE_GOBLET, new TextComponent("Champion Loot")));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, RUNE_REWARDS, ModItems.BOSS_RUNE, new TextComponent("Rune Rewards")));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, ROYALE_LOOT, ModBlocks.ROYALE_CRATE, new TextComponent("Royale Loot")));
+        registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, GREED_CAULDRON_INGREDIENTS, ModBlocks.GREED_CAULDRON, new TextComponent("Greed Cauldron Ingredients")));
+        registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, GREED_TRADER, ModBlocks.GREEDY_ANCHOR, new TextComponent("Greed Trader")));
 
         LootInfoGroupDefinitionRegistry.get().forEach((location, groupDefinition) ->
                 registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper,
@@ -180,6 +190,8 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipes(DRAGON_GOBLINS, getDragonGoblinDrops());
         registration.addRecipes(RUNE_REWARDS, getRuneRewards());
         registration.addRecipes(ROYALE_LOOT, getRoyaleLoot());
+        registration.addRecipes(GREED_CAULDRON_INGREDIENTS, getGreedCauldronIngredients());
+        registration.addRecipes(GREED_TRADER, getGreedTrades());
 
         LootInfoGroupDefinitionRegistry.get().forEach((location, groupDefinition) ->
             registration.addRecipes(adapt(groupDefinition.recipeType()), labelDefaultLootInfo(location)));
