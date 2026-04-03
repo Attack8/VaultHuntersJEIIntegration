@@ -31,6 +31,7 @@ import iskallia.vault.init.ModBlocks;
 import iskallia.vault.init.ModConfigs;
 import iskallia.vault.init.ModGearAttributes;
 import iskallia.vault.integration.jei.lootinfo.LootInfo;
+import iskallia.vault.item.AugmentItem;
 import iskallia.vault.item.gear.RecyclableItem;
 import iskallia.vault.tags.ModItemTags;
 import iskallia.vault.task.ProgressConfiguredTask;
@@ -595,6 +596,26 @@ public class JEIRecipeProvider {
             recipes.add(new ForgeItem(b.makeRecipe().getInputs(), output));
 
         });
+        return recipes;
+    }
+
+    public static List<ForgeItem> getAugmentRecipes() {
+        List<ForgeItem> recipes = new ArrayList<>();
+        for (AugmentStationConfig.ThemeEntry theme : ModConfigs.AUGMENT_STATION.getCraftableThemes()) {
+            int tier = theme.tier;
+            AugmentStationConfig.TierRecipe recipe = ModConfigs.AUGMENT_STATION.getRecipeForTier(tier).orElse(null);
+            if (recipe == null) continue;
+            List<ItemStack> ingredients = new ArrayList<>();
+            for (var ingredient : recipe.ingredients) {
+                ingredient.toItemStack().ifPresent(ingredients::add);
+            }
+
+            List<ResourceLocation> subThemes = ModConfigs.THEME_AUGMENT_LORE.augments.get(theme.augment);
+            for (ResourceLocation augmentTheme: subThemes) {
+                recipes.add(new ForgeItem(ingredients, AugmentItem.create(augmentTheme)));
+            }
+
+        }
         return recipes;
     }
 

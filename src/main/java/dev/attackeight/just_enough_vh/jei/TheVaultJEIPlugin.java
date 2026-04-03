@@ -41,6 +41,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
     public static final RecipeType<ForgeItem> INSCRIPTIONS = RecipeType.create(JustEnoughVH.ID, "forge_inscription", ForgeItem.class);
     public static final RecipeType<ForgeItem> JEWEL_CRAFTING = RecipeType.create(JustEnoughVH.ID, "jewel_crafting", ForgeItem.class);
     public static final RecipeType<ForgeItem> DECK_CRAFTING = RecipeType.create(JustEnoughVH.ID, "deck_crafting", ForgeItem.class);
+    public static final RecipeType<ForgeItem> AUGMENT_CRAFTING = RecipeType.create(JustEnoughVH.ID, "augment_crafting", ForgeItem.class);
 
     public static final RecipeType<RecyclerRecipe> VAULT_RECYCLER = RecipeType.create(JustEnoughVH.ID, "vault_recycler", RecyclerRecipe.class);
 
@@ -79,6 +80,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.INSCRIPTION_TABLE), INSCRIPTIONS);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.JEWEL_CRAFTING_TABLE), JEWEL_CRAFTING);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.DECK_CRAFTING_STATION), DECK_CRAFTING);
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.AUGMENT_STATION), AUGMENT_CRAFTING);
         registration.addRecipeCatalyst(new ItemStack(ModItems.MYSTERY_EGG), MYSTERY_EGG);
         registration.addRecipeCatalyst(new ItemStack(ModItems.MYSTERY_HOSTILE_EGG), HOSTILE_EGG);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.BLACK_MARKET), BLACK_MARKET);
@@ -118,6 +120,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCategories(makeForgeItemCategory(guiHelper, INSCRIPTIONS, ModBlocks.INSCRIPTION_TABLE));
         registration.addRecipeCategories(makeForgeItemCategory(guiHelper, JEWEL_CRAFTING, ModBlocks.JEWEL_CRAFTING_TABLE));
         registration.addRecipeCategories(makeForgeItemCategory(guiHelper, DECK_CRAFTING, ModBlocks.DECK_CRAFTING_STATION));
+        registration.addRecipeCategories(makeForgeItemCategory(guiHelper, AUGMENT_CRAFTING, ModBlocks.AUGMENT_STATION));
         registration.addRecipeCategories(makeLootInfoCategory(guiHelper, MYSTERY_EGG, ModItems.MYSTERY_EGG));
         registration.addRecipeCategories(makeLootInfoCategory(guiHelper, HOSTILE_EGG, ModItems.MYSTERY_HOSTILE_EGG));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, BLACK_MARKET, ModBlocks.BLACK_MARKET));
@@ -159,6 +162,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipes(INSCRIPTIONS, getForgeRecipes(ModConfigs.INSCRIPTION_RECIPES));
         registration.addRecipes(JEWEL_CRAFTING, getForgeRecipes(ModConfigs.JEWEL_CRAFTING_RECIPES));
         registration.addRecipes(DECK_CRAFTING, getDeckRecipes());
+        registration.addRecipes(AUGMENT_CRAFTING, getAugmentRecipes());
         registration.addRecipes(MYSTERY_EGG, getFromPool(ModConfigs.MYSTERY_EGG.POOL));
         registration.addRecipes(HOSTILE_EGG, getFromPool(ModConfigs.MYSTERY_HOSTILE_EGG.POOL));
         registration.addRecipes(BLACK_MARKET, getBlackMarketLoot());
