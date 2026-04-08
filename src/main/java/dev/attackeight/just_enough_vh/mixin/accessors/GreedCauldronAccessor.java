@@ -9,7 +9,10 @@ import java.util.List;
 @Mixin(value = GreedCauldronConfig.class, remap = false)
 public interface GreedCauldronAccessor {
     @Accessor
-    int getGlobalCoinOutput();
+    int getGlobalCoinOutputMin();
+
+    @Accessor
+    int getGlobalCoinOutputMax();
 
     @Accessor
     List<GreedCauldronConfig.DemandEntry> getDemands();

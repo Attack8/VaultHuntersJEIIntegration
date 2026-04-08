@@ -182,7 +182,7 @@ dependencies {
     // runtimeOnly fg.deobf("curse.maven:thermal-foundation-222880:4788649")
     // runtimeOnly fg.deobf("curse.maven:thermal-expansion-69163:4782927")
 
-    implementation fg.deobf("curse.maven:vault-hunters-official-mod-458203:7864349")
+    implementation fg.deobf("curse.maven:vault-hunters-official-mod-458203:7895502")
 
     runtimeOnly fg.deobf("curse.maven:alexs-mobs-426558:3853078")
     runtimeOnly fg.deobf("curse.maven:applied-energistics-2-223794:4136407")

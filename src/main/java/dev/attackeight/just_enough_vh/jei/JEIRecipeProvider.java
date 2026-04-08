@@ -244,7 +244,7 @@ public class JEIRecipeProvider {
             Item item = ForgeRegistries.ITEMS.getValue(ResourceLocation.parse(demandEntryA.getItem()));
             stacks.add(formatItemStack(new ItemStack(item), demandEntryA.getMinAmount(), demandEntryA.getMaxAmount(), 1, cauldronConfig.getDemands().size()));
         });
-        toReturn.add(LabeledLootInfo.of(stacks, new TextComponent("Greed Cauldron Ingredients"), new TextComponent(cauldronConfig.getGlobalCoinOutput() + " coin per submission")));
+        toReturn.add(LabeledLootInfo.of(stacks, new TextComponent("Greed Cauldron Ingredients"), new TextComponent(cauldronConfig.getGlobalCoinOutputMin() + "-" + cauldronConfig.getGlobalCoinOutputMax() + " coins per submission")));
         return toReturn;
     }
 
