@@ -40,6 +40,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
     public static final RecipeType<ForgeItem> INSCRIPTIONS = RecipeType.create(JustEnoughVH.ID, "forge_inscription", ForgeItem.class);
     public static final RecipeType<ForgeItem> JEWEL_CRAFTING = RecipeType.create(JustEnoughVH.ID, "jewel_crafting", ForgeItem.class);
     public static final RecipeType<ForgeItem> DECK_CRAFTING = RecipeType.create(JustEnoughVH.ID, "deck_crafting", ForgeItem.class);
+    public static final RecipeType<ForgeItem> AUGMENT_STATION = RecipeType.create(JustEnoughVH.ID, "augment_station", ForgeItem.class);
 
     public static final RecipeType<RecyclerRecipe> VAULT_RECYCLER = RecipeType.create(JustEnoughVH.ID, "vault_recycler", RecyclerRecipe.class);
 
@@ -51,9 +52,11 @@ public class TheVaultJEIPlugin implements IModPlugin {
     public static final RecipeType<LabeledLootInfo> BOUNTY_REWARDS = RecipeType.create(JustEnoughVH.ID, "bounty_rewards", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> SHOP_PEDESTAL = RecipeType.create(JustEnoughVH.ID, "shop_pedestal", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> ALTAR_INGREDIENTS = RecipeType.create(JustEnoughVH.ID, "altar_ingredients", LabeledLootInfo.class);
+    public static final RecipeType<LabeledLootInfo> GREED_CAULDRON_INGREDIENTS = RecipeType.create(JustEnoughVH.ID, "greed_cauldron_ingredients", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> BRAZIER_PILLAGE = RecipeType.create(JustEnoughVH.ID, "brazier_pillage", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> CHALLENGE_ACTION_LOOT = RecipeType.create(JustEnoughVH.ID, "challenge_action_loot", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> CHAMPION_LOOT = RecipeType.create(JustEnoughVH.ID, "champion_loot", LabeledLootInfo.class);
+    public static final RecipeType<LabeledLootInfo> GREED_TRADES = RecipeType.create(JustEnoughVH.ID, "greed_trades", LabeledLootInfo.class);
 
     // Optional
     public static final RecipeType<LootInfo> MYSTERY_BOX = RecipeType.create(JustEnoughVH.ID, "mystery_box", LootInfo.class);
@@ -75,6 +78,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.INSCRIPTION_TABLE), INSCRIPTIONS);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.JEWEL_CRAFTING_TABLE), JEWEL_CRAFTING);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.DECK_CRAFTING_STATION), DECK_CRAFTING);
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.AUGMENT_STATION), AUGMENT_STATION);
         registration.addRecipeCatalyst(new ItemStack(ModItems.MYSTERY_EGG), MYSTERY_EGG);
         registration.addRecipeCatalyst(new ItemStack(ModItems.MYSTERY_HOSTILE_EGG), HOSTILE_EGG);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.BLACK_MARKET), BLACK_MARKET);
@@ -82,10 +86,12 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.BOUNTY_BLOCK), BOUNTY_REWARDS);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.SHOP_PEDESTAL), SHOP_PEDESTAL);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.VAULT_ALTAR), ALTAR_INGREDIENTS);
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.GREED_CAULDRON), GREED_CAULDRON_INGREDIENTS);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.VAULT_RECYCLER), VAULT_RECYCLER);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.RAID_CONTROLLER), CHALLENGE_ACTION_LOOT);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.ELITE_CONTROLLER), CHALLENGE_ACTION_LOOT);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.X_MARK_CONTROLLER), CHALLENGE_ACTION_LOOT);
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.GREEDY_ANCHOR), GREED_TRADES);
 
         LootInfoGroupDefinitionRegistry.get().forEach((location, groupDefinition) ->
                 registration.addRecipeCatalyst(groupDefinition.itemStack(), adapt(groupDefinition.recipeType())));
@@ -111,6 +117,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCategories(makeForgeItemCategory(guiHelper, INSCRIPTIONS, ModBlocks.INSCRIPTION_TABLE));
         registration.addRecipeCategories(makeForgeItemCategory(guiHelper, JEWEL_CRAFTING, ModBlocks.JEWEL_CRAFTING_TABLE));
         registration.addRecipeCategories(makeForgeItemCategory(guiHelper, DECK_CRAFTING, ModBlocks.DECK_CRAFTING_STATION));
+        registration.addRecipeCategories(makeForgeItemCategory(guiHelper, AUGMENT_STATION, ModBlocks.AUGMENT_STATION));
         registration.addRecipeCategories(makeLootInfoCategory(guiHelper, MYSTERY_EGG, ModItems.MYSTERY_EGG));
         registration.addRecipeCategories(makeLootInfoCategory(guiHelper, HOSTILE_EGG, ModItems.MYSTERY_HOSTILE_EGG));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, BLACK_MARKET, ModBlocks.BLACK_MARKET));
@@ -118,9 +125,11 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, BOUNTY_REWARDS, ModBlocks.BOUNTY_BLOCK));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, SHOP_PEDESTAL, ModBlocks.SHOP_PEDESTAL));
         registration.addRecipeCategories(makeLabeledIngredientPoolCategory(guiHelper, ALTAR_INGREDIENTS, ModBlocks.VAULT_ALTAR));
+        registration.addRecipeCategories(makeLabeledIngredientPoolCategory(guiHelper, GREED_CAULDRON_INGREDIENTS, ModBlocks.GREED_CAULDRON));
         registration.addRecipeCategories(makeRecyclerCategory(guiHelper, VAULT_RECYCLER, ModBlocks.VAULT_RECYCLER));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, CHALLENGE_ACTION_LOOT, ModBlocks.RAID_CONTROLLER));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, CHAMPION_LOOT, ModItems.SCAVENGER_TREASURE_GOBLET, new TextComponent("Champion Loot")));
+        registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, GREED_TRADES, ModBlocks.GREEDY_ANCHOR));
 
         LootInfoGroupDefinitionRegistry.get().forEach((location, groupDefinition) ->
                 registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper,
@@ -152,9 +161,12 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipes(BOUNTY_REWARDS, getBountyRewards());
         registration.addRecipes(SHOP_PEDESTAL, getShopPedestalLoot());
         registration.addRecipes(ALTAR_INGREDIENTS, getAltarIngredients());
+        registration.addRecipes(GREED_CAULDRON_INGREDIENTS, getGreedCauldronIngredients());
         registration.addRecipes(VAULT_RECYCLER, getRecyclerRecipes());
         registration.addRecipes(CHALLENGE_ACTION_LOOT, getChallengeActionLoot());
         registration.addRecipes(CHAMPION_LOOT, getChampionLoot());
+        registration.addRecipes(AUGMENT_STATION, getAugmentRecipes());
+        registration.addRecipes(GREED_TRADES, getGreedTrades());
 
         LootInfoGroupDefinitionRegistry.get().forEach((location, groupDefinition) ->
             registration.addRecipes(adapt(groupDefinition.recipeType()), labelDefaultLootInfo(location)));

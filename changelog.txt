@@ -83,3 +83,9 @@ Just Enough VH v1.7.1
 
 Just Enough VH v1.8
  - Add Deck Unlock Tasks to Tooltip
+
+Just Enough VH v1.9
+ - Update to Vault Hunters 3.21
+ - Added Greed Cauldron Ingredients
+ - Added Greed Trades
+ - Added Augment Recipes

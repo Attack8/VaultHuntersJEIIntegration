@@ -1,6 +1,9 @@
 package dev.attackeight.just_enough_vh.jei;
 
 import dev.attackeight.just_enough_vh.JustEnoughVH;
+import dev.attackeight.just_enough_vh.mixin.GreedCauldronConfigAccessor;
+import dev.attackeight.just_enough_vh.mixin.GreedCauldronConfigDemandAccessor;
+import dev.attackeight.just_enough_vh.mixin.GreedTraderConfigAccessor;
 import iskallia.vault.VaultMod;
 import iskallia.vault.config.*;
 import iskallia.vault.block.PlaceholderBlock;
@@ -10,7 +13,10 @@ import iskallia.vault.config.entry.IntRangeEntry;
 import iskallia.vault.config.entry.LevelEntryList;
 import iskallia.vault.config.entry.recipe.ConfigForgeRecipe;
 import iskallia.vault.config.entry.vending.ProductEntry;
+import iskallia.vault.config.greed.GreedCauldronConfig;
+import iskallia.vault.config.greed.GreedTraderConfig;
 import iskallia.vault.config.recipe.ForgeRecipesConfig;
+import iskallia.vault.core.random.JavaRandom;
 import iskallia.vault.core.vault.challenge.action.*;
 import iskallia.vault.core.Version;
 import iskallia.vault.core.vault.VaultRegistry;
@@ -23,13 +29,16 @@ import iskallia.vault.gear.data.AttributeGearData;
 import iskallia.vault.init.ModBlocks;
 import iskallia.vault.init.ModConfigs;
 import iskallia.vault.init.ModGearAttributes;
+import iskallia.vault.init.ModItems;
 import iskallia.vault.integration.jei.lootinfo.LootInfo;
+import iskallia.vault.item.AugmentItem;
 import iskallia.vault.item.gear.RecyclableItem;
 import iskallia.vault.tags.ModItemTags;
 import iskallia.vault.task.ProgressConfiguredTask;
 import iskallia.vault.util.data.WeightedList;
 import mezz.jei.api.recipe.RecipeType;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -48,6 +57,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.tags.ITag;
 import iskallia.vault.core.vault.challenge.action.PoolChallengeAction.Config.LevelPool;
+import org.apache.commons.lang3.text.WordUtils;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -103,6 +113,27 @@ public class JEIRecipeProvider {
         LootInfoConfig.LootInfo lootInfo = ModConfigs.LOOT_INFO_CONFIG.getLootInfoMap().get(lootInfoGroupKey);
         return lootInfo != null ? lootInfo.getLootTableKeys() : Collections.emptySet();
     }
+
+    protected static List<ForgeItem> getAugmentRecipes() {
+        List<ForgeItem> lootInfos = new ArrayList<>();
+        for (AugmentStationConfig.ThemeEntry themeEntry : ModConfigs.AUGMENT_STATION.getCraftableThemes()) {
+            List<ItemStack> itemStacks = new ArrayList<>();
+            List<AugmentStationConfig.RecipeIngredient> ingredients = ModConfigs.AUGMENT_STATION.getRecipeForTier(themeEntry.tier).get().ingredients;
+            ingredients.forEach(ingredient -> itemStacks.add(ingredient.toItemStack().orElse(ItemStack.EMPTY)));
+            ItemStack outputItem = new ItemStack(ModItems.AUGMENT);
+            if (ModConfigs.THEME_AUGMENT_LORE != null && ModConfigs.THEME_AUGMENT_LORE.augments != null) {
+                List<ResourceLocation> subThemes = ModConfigs.THEME_AUGMENT_LORE.augments.get(themeEntry.augment);
+                if (subThemes != null && !subThemes.isEmpty()) {
+                    ResourceLocation randomSubTheme = subThemes.get((new Random()).nextInt(subThemes.size()));
+                    outputItem = AugmentItem.create(randomSubTheme);
+                }
+            }
+            lootInfos.add(new ForgeItem(itemStacks, outputItem));
+        }
+
+        return lootInfos;
+    }
+
 
     public static List<LabeledLootInfo> getShopPedestalLoot() {
         List<LabeledLootInfo> lootInfo = new ArrayList<>();
@@ -218,6 +249,25 @@ public class JEIRecipeProvider {
         });
         lootInfo.forEach((i, n) -> toReturn.addAll(n));
         return toReturn;
+    }
+
+    public static List<LabeledLootInfo> getGreedCauldronIngredients() {
+        List<LabeledLootInfo> toReturn = new ArrayList<>();
+        GreedCauldronConfigAccessor cauldronConfig = (GreedCauldronConfigAccessor) ModConfigs.GREED_CAULDRON;
+        int totalWeight = cauldronConfig.getDemands().size();
+        List<ItemStack> results = new ArrayList<>();
+        ((GreedCauldronConfigAccessor) ModConfigs.GREED_CAULDRON).getDemands().forEach((demand) -> {
+            ItemStack item = ForgeRegistries.ITEMS.getValue(parseItemId(((GreedCauldronConfigDemandAccessor) demand).getItem())).getDefaultInstance();
+            results.add(formatItemStack(item, ((GreedCauldronConfigDemandAccessor) demand).getMinAmount(),
+                    ((GreedCauldronConfigDemandAccessor) demand).getMaxAmount(), 1, totalWeight, 1));
+        });
+        toReturn.add(LabeledLootInfo.of(results, new TextComponent("All amounts are base values"), new TextComponent(cauldronConfig.getGlobalCoinOutputMin() + "-" + cauldronConfig.getGlobalCoinOutputMax() + " coins per submission")));
+        return toReturn;
+    }
+
+    private static ResourceLocation parseItemId(String itemId) {
+        int colonIdx = itemId.indexOf(58);
+        return colonIdx >= 0 ? new ResourceLocation(itemId.substring(0, colonIdx), itemId.substring(colonIdx + 1)) : new ResourceLocation("minecraft", itemId);
     }
 
     public static List<LabeledLootInfo> getMaterialBoxLoot() {
@@ -381,7 +431,8 @@ public class JEIRecipeProvider {
         Map<String, ChallengeAction<?>> raidValues = ModConfigs.CHALLENGE_ACTIONS.values;
 
         for (var rv : raidValues.entrySet()) {
-            String lootTableName = rv.getKey();
+            @SuppressWarnings("deprecation")
+            String lootTableName = WordUtils.capitalize(rv.getKey().replace("_", " "));
             ChallengeAction.Config config = rv.getValue().getConfig();
             if (config instanceof PoolChallengeAction.Config poolConfig) {
                 LevelEntryList<LevelPool> pools = poolConfig.pools;
