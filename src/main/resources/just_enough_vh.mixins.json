@@ -8,7 +8,13 @@
     "GreedCauldronConfigAccessor",
     "GreedCauldronConfigDemandAccessor",
     "GreedTraderConfigAccessor",
-    "IntegrationJEIMixin"
+    "IntegrationJEIMixin",
+    "accessors.DemandEntryAccessor",
+    "accessors.GreedCauldronAccessor",
+    "accessors.GreedTraderConfigAccessor",
+    "IntegrationJEIMixin",
+    "accessors.PlayerGreedTraderDataAccessor",
+    "accessors.TradeEntryAccessor"
   ],
   "client": [],
   "injectors": {

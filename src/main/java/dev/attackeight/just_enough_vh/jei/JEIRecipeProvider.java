@@ -1,9 +1,7 @@
 package dev.attackeight.just_enough_vh.jei;
 
 import dev.attackeight.just_enough_vh.JustEnoughVH;
-import dev.attackeight.just_enough_vh.mixin.GreedCauldronConfigAccessor;
-import dev.attackeight.just_enough_vh.mixin.GreedCauldronConfigDemandAccessor;
-import dev.attackeight.just_enough_vh.mixin.GreedTraderConfigAccessor;
+import dev.attackeight.just_enough_vh.mixin.accessors.*;
 import iskallia.vault.VaultMod;
 import iskallia.vault.config.*;
 import iskallia.vault.block.PlaceholderBlock;
@@ -13,16 +11,21 @@ import iskallia.vault.config.entry.IntRangeEntry;
 import iskallia.vault.config.entry.LevelEntryList;
 import iskallia.vault.config.entry.recipe.ConfigForgeRecipe;
 import iskallia.vault.config.entry.vending.ProductEntry;
-import iskallia.vault.config.greed.GreedCauldronConfig;
 import iskallia.vault.config.greed.GreedTraderConfig;
 import iskallia.vault.config.recipe.ForgeRecipesConfig;
-import iskallia.vault.core.random.JavaRandom;
+import iskallia.vault.core.data.key.PaletteKey;
 import iskallia.vault.core.vault.challenge.action.*;
 import iskallia.vault.core.Version;
 import iskallia.vault.core.vault.VaultRegistry;
+import iskallia.vault.core.world.data.entity.PartialCompoundNbt;
+import iskallia.vault.core.world.data.tile.PartialTile;
 import iskallia.vault.core.world.loot.LootPool;
 import iskallia.vault.core.world.loot.LootTable;
 import iskallia.vault.core.world.loot.entry.ItemLootEntry;
+import iskallia.vault.core.world.processor.Palette;
+import iskallia.vault.core.world.processor.tile.TileProcessor;
+import iskallia.vault.core.world.processor.tile.WeightedTileProcessor;
+import iskallia.vault.entity.entity.DragonTreasureGoblinEntity;
 import iskallia.vault.gear.VaultGearRarity;
 import iskallia.vault.gear.crafting.recipe.VaultForgeRecipe;
 import iskallia.vault.gear.data.AttributeGearData;
@@ -36,12 +39,13 @@ import iskallia.vault.item.gear.RecyclableItem;
 import iskallia.vault.tags.ModItemTags;
 import iskallia.vault.task.ProgressConfiguredTask;
 import iskallia.vault.util.data.WeightedList;
+import iskallia.vault.world.data.PlayerGreedTraderData;
 import mezz.jei.api.recipe.RecipeType;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -439,7 +443,7 @@ public class JEIRecipeProvider {
                 for (LevelPool levelPool : pools) {
                     List<ItemStack> rewardItems = getFromChallengeActionPool(levelPool.pool);
                     lootInfo.add(LabeledLootInfo.of(rewardItems,
-                            new TextComponent(lootTableName + " Level: " + levelPool.getLevel() + "+"),null)
+                            new TextComponent(lootTableName + " - Level: " + levelPool.getLevel() + "+"),null)
                     );
                 }
             }
@@ -522,19 +526,95 @@ public class JEIRecipeProvider {
 
     protected static List<LabeledLootInfo> getChampionLoot() {
         List<LabeledLootInfo> lootInfos = new ArrayList<>();
+        String lastTable = null;
         for (LegacyLootTablesConfig.Level lvlEntry : ModConfigs.LOOT_TABLES.LEVELS) {
-            LootTable table = VaultRegistry.LOOT_TABLE.getKey(lvlEntry.CHAMPION).get(Version.latest());
-            List<ItemStack> itemStacks = new ArrayList<>();
-            int idx = 1;
-            for (LootTable.Entry entry: table.getEntries()) {
-                itemStacks.addAll(processLootTableEntry(entry, "Roll #" + idx + " ("+(entry.getRoll().getMin() == entry.getRoll().getMax() ? "" :entry.getRoll().getMin()+"x-")+entry.getRoll().getMax()+"x)"));
-                idx++;
+            LootTable lootTable = VaultRegistry.LOOT_TABLE.getKey(lvlEntry.CHAMPION).get(Version.latest());
+            if (lastTable != null && lastTable.equals(lootTable.getPath())) {
+                continue;
             }
-            lootInfos.add(LabeledLootInfo.of(itemStacks, new TextComponent("Level "+lvlEntry.getLevel()+"+") , null));
+            lastTable = lootTable.getPath();
+            lootInfos.add(LabeledLootInfo.of(processLegacyLootTable(lootTable), new TextComponent("Level "+lvlEntry.getLevel()+"+") , null));
         }
 
         return lootInfos;
     }
+
+    protected static List<LabeledLootInfo> getDragonGoblinDrops() {
+        List<LabeledLootInfo> lootInfos = new ArrayList<>();
+        for (var goblinInfo: getGoblinInfoFromPalette("the_vault:dragon/base").entrySet()) {
+            TextComponent typeCompoment = new TextComponent(goblinInfo.getKey());
+            try {
+                typeCompoment.withStyle(Style.EMPTY.withColor(DragonTreasureGoblinEntity.GoblinType.valueOf(goblinInfo.getKey()).getColour()));
+            } catch (IllegalArgumentException ignored) {/* config has invalid enum constant - no color */}
+
+            Component label = new TextComponent("Goblin Type: ").append(typeCompoment);
+            LootTable lootTable = VaultRegistry.LOOT_TABLE.getKey(goblinInfo.getValue()).get(Version.latest());
+            lootInfos.add(LabeledLootInfo.of(processLegacyLootTable(lootTable), label, null));
+        }
+
+
+        return lootInfos;
+    }
+
+    /** returns GoblinType => goblin drop loot table key mapping */
+    private static Map<String, String> getGoblinInfoFromPalette(String paletteId) {
+        PaletteKey key = VaultRegistry.PALETTE.getKey(paletteId);
+        if (key == null) return Collections.emptyMap();
+        Palette palette = key.get(Version.latest());
+        List<TileProcessor> processors = palette.getTileProcessors();
+        LinkedHashMap<String, String> goblins = new LinkedHashMap<>();
+        for (TileProcessor tp : processors) {
+            if (tp instanceof WeightedTileProcessor wtp) {
+                // palette processor responsible for goblin types
+                for (PartialTile outputTile : wtp.getOutput().keySet()) {
+                    PartialCompoundNbt partialOutputNbt = outputTile.getEntity();
+                    if (partialOutputNbt == null){
+                        continue;
+                    }
+                    CompoundTag outputNbt = partialOutputNbt.asWhole().orElse(null);
+                    if (outputNbt == null) {
+                        continue;
+                    }
+                    ListTag variantList = outputNbt.getList("goblinVariants", Tag.TAG_COMPOUND);
+                    for (int i = 0; i < variantList.size(); i++) {
+                        CompoundTag variant = variantList.getCompound(i).getCompound("variant");
+                        String goblinType = variant.getCompound("entityNbt").getString("GoblinType");
+                        String lootTable = variant.getString("dropLootTable");
+                        goblins.put(goblinType, lootTable);
+                    }
+                }
+            }
+        }
+        return goblins;
+    }
+
+    protected static List<LabeledLootInfo> getRuneRewards() {
+        List<LabeledLootInfo> lootInfos = new ArrayList<>();
+        String lastTable = null;
+        for (LegacyLootTablesConfig.Level lvlEntry : ModConfigs.LOOT_TABLES.LEVELS) {
+            LootTable lootTable = VaultRegistry.LOOT_TABLE.getKey(lvlEntry.RUNES_LOOT).get(Version.latest());
+            if (lastTable != null && lastTable.equals(lootTable.getPath())) {
+                continue;
+            }
+            lastTable = lootTable.getPath();
+            lootInfos.add(LabeledLootInfo.of(processLegacyLootTable(lootTable), new TextComponent("Level "+lvlEntry.getLevel()+"+") , null));
+        }
+
+        return lootInfos;
+    }
+
+    protected static List<LabeledLootInfo> getRoyaleLoot() {
+        List<LabeledLootInfo> lootInfos = new ArrayList<>();
+        ModConfigs.ROYALE_LOOT.presets.forEach((lootTableId, weight) -> {
+            LootTable lootTable = VaultRegistry.LOOT_TABLE.getKey(lootTableId).get(Version.latest());
+            @SuppressWarnings("deprecation")
+            String name = WordUtils.capitalize(lootTableId.getPath().replace("_", " "));
+            lootInfos.add(LabeledLootInfo.of(processLegacyLootTable(lootTable), new TextComponent(name), null));
+        });
+
+        return lootInfos;
+    }
+
 
     public static List<ForgeItem> getDeckRecipes() {
         List<ForgeItem> recipes = new ArrayList<>();
@@ -563,6 +643,38 @@ public class JEIRecipeProvider {
         return recipes;
     }
 
+    public static List<LabeledLootInfo> getGreedTrades() {
+        List<LabeledLootInfo> recipes = new ArrayList<>();
+
+        var rand = new Random();
+        Map<Integer, List<GreedTraderConfig.TradeEntry>> pools = ((GreedTraderConfigAccessor)ModConfigs.GREED_TRADER).getTierPools();
+        List<Integer> greedTiers = pools.keySet().stream().sorted().toList();
+        for (Integer greedTier : greedTiers) {
+            List<GreedTraderConfig.TradeEntry> availableEntries = pools.get(greedTier);
+            int totalWeight = availableEntries.stream().mapToInt(GreedTraderConfig.TradeEntry::getWeight).sum();
+            List<List<ItemStack>> stacks = new ArrayList<>();
+            for(GreedTraderConfig.TradeEntry entry : pools.get(greedTier)) {
+                List<ItemStack> randomRolls = new ArrayList<>();
+                int realMaxAmount = entry.getMinAmount() + Math.max(1, entry.getMaxAmount() - entry.getMinAmount() + 1); // wtf vh
+                var tradeEntryA = (TradeEntryAccessor) entry;
+                int realMaxCost = tradeEntryA.getMinCoinCost() + Math.max(1, tradeEntryA.getMaxCoinCost() - tradeEntryA.getMinCoinCost() + 1);
+                for (int i = 0; i < 10; i++) { // roll 10 items to make it obvious you can for different etchings and stuff
+                    PlayerGreedTraderData.TradeOffer offer = ((PlayerGreedTraderDataAccessor)new PlayerGreedTraderData()).callRollSingleOffer(entry, greedTier, ModConfigs.GREED_TRADER, rand, 100);
+                    if (offer != null) {
+                        randomRolls.add(formatItemStack(offer.createItemStack(), entry.getMinAmount(), realMaxAmount, entry.getWeight(), totalWeight, null, "Cost: " + tradeEntryA.getMinCoinCost() + "-" + realMaxCost));
+                    }
+                }
+                if (!randomRolls.isEmpty()) {
+                    stacks.add(randomRolls);
+                }
+            }
+            recipes.add(new LabeledLootInfo(stacks, new TextComponent("Greed Trade - Greed tier " + greedTier + "+"), new TextComponent("lower tier item can also appear").withStyle(ChatFormatting.DARK_GRAY)));
+        }
+
+
+        return recipes;
+    }
+
     private static List<ItemStack> processLootTableEntry(LootTable.Entry entry, @Nullable String rollText) {
         return processLootPool(entry.getPool(), rollText,1d);
     }
@@ -588,6 +700,16 @@ public class JEIRecipeProvider {
             }
         }
         return stacks;
+    }
+
+    private static List<ItemStack> processLegacyLootTable(LootTable table) {
+        List<ItemStack> itemStacks = new ArrayList<>();
+        int idx = 1;
+        for (LootTable.Entry entry: table.getEntries()) {
+            itemStacks.addAll(processLootTableEntry(entry, "Roll #" + idx + " ("+(entry.getRoll().getMin() == entry.getRoll().getMax() ? "" :entry.getRoll().getMin()+"x-")+entry.getRoll().getMax()+"x)"));
+            idx++;
+        }
+        return itemStacks;
     }
 
     protected static ItemStack formatItemStack(ItemStack item, int amountMin, int amountMax, double weight, double totalWeight, @Nullable Integer amount) {
