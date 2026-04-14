@@ -89,3 +89,8 @@ Just Enough VH v1.9
  - Added Greed Cauldron Ingredients
  - Added Greed Trades
  - Added Augment Recipes
+ - Added Companion Relic Crafting
+ - Added Companion Trial Crafting
+ - Added Dragon Goblin Loot
+ - Added Rune Rewards
+ - Added Royale Loot
