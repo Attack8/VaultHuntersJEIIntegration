@@ -257,13 +257,13 @@ public class JEIRecipeProvider {
 
     public static List<LabeledLootInfo> getGreedCauldronIngredients() {
         List<LabeledLootInfo> toReturn = new ArrayList<>();
-        GreedCauldronConfigAccessor cauldronConfig = (GreedCauldronConfigAccessor) ModConfigs.GREED_CAULDRON;
+        GreedCauldronAccessor cauldronConfig = (GreedCauldronAccessor) ModConfigs.GREED_CAULDRON;
         int totalWeight = cauldronConfig.getDemands().size();
         List<ItemStack> results = new ArrayList<>();
-        ((GreedCauldronConfigAccessor) ModConfigs.GREED_CAULDRON).getDemands().forEach((demand) -> {
-            ItemStack item = ForgeRegistries.ITEMS.getValue(parseItemId(((GreedCauldronConfigDemandAccessor) demand).getItem())).getDefaultInstance();
-            results.add(formatItemStack(item, ((GreedCauldronConfigDemandAccessor) demand).getMinAmount(),
-                    ((GreedCauldronConfigDemandAccessor) demand).getMaxAmount(), 1, totalWeight, 1));
+        ((GreedCauldronAccessor) ModConfigs.GREED_CAULDRON).getDemands().forEach((demand) -> {
+            ItemStack item = ForgeRegistries.ITEMS.getValue(parseItemId(((DemandEntryAccessor) demand).getItem())).getDefaultInstance();
+            results.add(formatItemStack(item, ((DemandEntryAccessor) demand).getMinAmount(),
+                    ((DemandEntryAccessor) demand).getMaxAmount(), 1, totalWeight, 1));
         });
         toReturn.add(LabeledLootInfo.of(results, new TextComponent("All amounts are base values"), new TextComponent(cauldronConfig.getGlobalCoinOutputMin() + "-" + cauldronConfig.getGlobalCoinOutputMax() + " coins per submission")));
         return toReturn;
@@ -271,7 +271,7 @@ public class JEIRecipeProvider {
 
     private static ResourceLocation parseItemId(String itemId) {
         int colonIdx = itemId.indexOf(58);
-        return colonIdx >= 0 ? new ResourceLocation(itemId.substring(0, colonIdx), itemId.substring(colonIdx + 1)) : new ResourceLocation("minecraft", itemId);
+        return colonIdx >= 0 ? new ResourceLocation(itemId.substring(0, colonIdx), itemId.substring(colonIdx + 1)) : new ResourceLocation(itemId);
     }
 
     public static List<LabeledLootInfo> getMaterialBoxLoot() {
