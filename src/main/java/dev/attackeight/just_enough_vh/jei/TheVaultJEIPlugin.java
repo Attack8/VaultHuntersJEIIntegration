@@ -100,7 +100,6 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ModItems.INSCRIPTION), DRAGON_GOBLINS);
         registration.addRecipeCatalyst(new ItemStack(ModItems.BOSS_RUNE), RUNE_REWARDS);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.ROYALE_CRATE), ROYALE_LOOT);
-        registration.addRecipeCatalyst(new ItemStack(ModBlocks.GREED_CAULDRON), GREED_CAULDRON_INGREDIENTS);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.GREEDY_ANCHOR), GREED_TRADER);
 
         LootInfoGroupDefinitionRegistry.get().forEach((location, groupDefinition) ->
@@ -143,7 +142,6 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, CHAMPION_LOOT, ModItems.SCAVENGER_TREASURE_GOBLET, new TextComponent("Champion Loot")));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, RUNE_REWARDS, ModItems.BOSS_RUNE, new TextComponent("Rune Rewards")));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, ROYALE_LOOT, ModBlocks.ROYALE_CRATE, new TextComponent("Royale Loot")));
-        registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, GREED_CAULDRON_INGREDIENTS, ModBlocks.GREED_CAULDRON, new TextComponent("Greed Cauldron Ingredients")));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, GREED_TRADER, ModBlocks.GREEDY_ANCHOR, new TextComponent("Greed Trader")));
 
         LootInfoGroupDefinitionRegistry.get().forEach((location, groupDefinition) ->
@@ -191,7 +189,6 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipes(DRAGON_GOBLINS, getDragonGoblinDrops());
         registration.addRecipes(RUNE_REWARDS, getRuneRewards());
         registration.addRecipes(ROYALE_LOOT, getRoyaleLoot());
-        registration.addRecipes(GREED_CAULDRON_INGREDIENTS, getGreedCauldronIngredients());
         registration.addRecipes(GREED_TRADER, getGreedTrades());
 
         LootInfoGroupDefinitionRegistry.get().forEach((location, groupDefinition) ->
