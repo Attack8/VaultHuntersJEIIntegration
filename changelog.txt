@@ -94,3 +94,6 @@ Just Enough VH v1.9
  - Added Dragon Goblin Loot
  - Added Rune Rewards
  - Added Royale Loot
+
+Just Enough VH v1.10
+ - Add Vault Hostile Egg
