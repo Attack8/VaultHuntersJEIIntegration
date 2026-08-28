@@ -49,6 +49,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
 
     public static final RecipeType<LootInfo> MYSTERY_EGG = RecipeType.create(JustEnoughVH.ID, "mystery_egg", LootInfo.class);
     public static final RecipeType<LootInfo> HOSTILE_EGG = RecipeType.create(JustEnoughVH.ID, "hostile_egg", LootInfo.class);
+    public static final RecipeType<LootInfo> VAULT_HOSTILE_EGG = RecipeType.create(JustEnoughVH.ID, "vault_hostile_egg", LootInfo.class);
 
     public static final RecipeType<LabeledLootInfo> BLACK_MARKET = RecipeType.create(JustEnoughVH.ID, "black_market", LabeledLootInfo.class);
     public static final RecipeType<LabeledLootInfo> MOD_BOX = RecipeType.create(JustEnoughVH.ID, "mod_box", LabeledLootInfo.class);
@@ -87,6 +88,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.AUGMENT_STATION), AUGMENT_STATION);
         registration.addRecipeCatalyst(new ItemStack(ModItems.MYSTERY_EGG), MYSTERY_EGG);
         registration.addRecipeCatalyst(new ItemStack(ModItems.MYSTERY_HOSTILE_EGG), HOSTILE_EGG);
+        registration.addRecipeCatalyst(new ItemStack(ModItems.VAULT_HOSTILE_EGG), VAULT_HOSTILE_EGG);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.BLACK_MARKET), BLACK_MARKET);
         registration.addRecipeCatalyst(new ItemStack(ModItems.MOD_BOX), MOD_BOX);
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.BOUNTY_BLOCK), BOUNTY_REWARDS);
@@ -131,6 +133,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipeCategories(makeForgeItemCategory(guiHelper, COMPANION_TRAIL, ModBlocks.RELIC_CRAFTING_TABLE));
         registration.addRecipeCategories(makeLootInfoCategory(guiHelper, MYSTERY_EGG, ModItems.MYSTERY_EGG));
         registration.addRecipeCategories(makeLootInfoCategory(guiHelper, HOSTILE_EGG, ModItems.MYSTERY_HOSTILE_EGG));
+        registration.addRecipeCategories(makeLootInfoCategory(guiHelper, VAULT_HOSTILE_EGG, ModItems.VAULT_HOSTILE_EGG));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, BLACK_MARKET, ModBlocks.BLACK_MARKET));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, MOD_BOX, ModItems.MOD_BOX));
         registration.addRecipeCategories(makeLabeledLootInfoCategory(guiHelper, BOUNTY_REWARDS, ModBlocks.BOUNTY_BLOCK));
@@ -176,6 +179,7 @@ public class TheVaultJEIPlugin implements IModPlugin {
         registration.addRecipes(COMPANION_TRAIL, getForgeRecipes(ModConfigs.COMPANION_TRAIL_CRAFTING));
         registration.addRecipes(MYSTERY_EGG, getFromPool(ModConfigs.MYSTERY_EGG.POOL));
         registration.addRecipes(HOSTILE_EGG, getFromPool(ModConfigs.MYSTERY_HOSTILE_EGG.POOL));
+        registration.addRecipes(VAULT_HOSTILE_EGG, getFromPool(ModConfigs.VAULT_HOSTILE_EGG.POOL));
         registration.addRecipes(BLACK_MARKET, getBlackMarketLoot());
         registration.addRecipes(MOD_BOX, getModBoxLoot());
         registration.addRecipes(BOUNTY_REWARDS, getBountyRewards());
